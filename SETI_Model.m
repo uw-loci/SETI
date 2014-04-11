@@ -8,6 +8,7 @@
 % Jeremy Bredfeldt - Morgridge Institutes for Research/LOCI
 % Sept 2013
 
+clc;
 clear all;
 %close all;
 
@@ -17,36 +18,48 @@ nums = round(spc_size*ppm); %number of samples
 nums2 = round(nums/2);
 
 %% Create the object
-a = 10; %diameter in one dimension in microns
-b = 10; %diameter in the other dimension in microns
+% a = 10; %diameter in one dimension in microns
+% b = 10; %diameter in the other dimension in microns
 
 %create vectors for space
 [xr, yr, zr] = meshgrid(-nums2:nums2);
 xr = xr/ppm;
 yr = yr/ppm;
 zr = zr/ppm;
-%r is the object (cylinder) volume (3D matrix)
-%r is reflectivity of each voxel at a given wavelength
-r = (((xr)/a).^2 + ...
-    ((zr+5)/b).^2);
-rlim = r > 1;
-rlim2 = r > 0.1;
-% r = r+.1;
-% r = 1/r;
-%reflectivity of surrounding material is high
-%reflectivity of chromophore inside vessel is low
-%r(rlim) = .001; %outsize vessel (clear resin)
-r(rlim) = .9; %outsize vessel (opaque resin)
-r(~rlim) = .1; %inside vessel (tissue and chromophore)
 
-%make an attenuation matrix, then factor attenuation into the final output image
-%attenuation of surrounding material is high
-%attenuation of chromophore is high, attenuation of the non-stained tissue may be low
-mua = r;
-%mua(rlim) = 0.001; %outside vessel (units = 1/pixels) (clear resin)
-mua(rlim) = 2; %outside vessel (units = 1/pixels) (opaque resin)
-mua(~rlim) = .1; %outer vessel (units = 1/pixels) (relatively clear tissue)
-mua(~rlim2) = 10; %inner vessel (Chromophore)
+%create a cube object
+x1 = -10; x2 = 10; %microns
+y1 = -10; y2 = 10; %microns
+z1 = zr(1); z2 = zr(1)+15; %microns
+
+r = xr > x1 & xr < x2 & yr > y1 & yr < y2 & zr > z1 & zr < z2;
+figure(1); clf;
+axis square;
+imagesc(squeeze(r(:,90,:))');
+
+%return;
+% %r is the object (cylinder) volume (3D matrix)
+% %r is reflectivity of each voxel at a given wavelength
+% r = (((xr)/a).^2 + ...
+%     ((zr+5)/b).^2);
+% rlim = r > 1;
+% rlim2 = r > 0.1;
+% % r = r+.1;
+% % r = 1/r;
+% %reflectivity of surrounding material is high
+% %reflectivity of chromophore inside vessel is low
+% %r(rlim) = .001; %outsize vessel (clear resin)
+% r(rlim) = .9; %outsize vessel (opaque resin)
+% r(~rlim) = .1; %inside vessel (tissue and chromophore)
+% 
+% %make an attenuation matrix, then factor attenuation into the final output image
+% %attenuation of surrounding material is high
+% %attenuation of chromophore is high, attenuation of the non-stained tissue may be low
+% mua = r;
+% %mua(rlim) = 0.001; %outside vessel (units = 1/pixels) (clear resin)
+% mua(rlim) = 2; %outside vessel (units = 1/pixels) (opaque resin)
+% mua(~rlim) = .1; %outer vessel (units = 1/pixels) (relatively clear tissue)
+% mua(~rlim2) = 10; %inner vessel (Chromophore)
 
 
 %% Create the PSF
@@ -72,10 +85,12 @@ psf = exp( -((xp).^2 + (yp).^2) ./ ...
            ./(2*pi*(n0 + n1*abs(zp+psfspcz2)).^2);
        
 psf = psf/(max(max(max(psf))));
-figure(1); clf;
+figure(2); clf;
 imagesc(squeeze(psf(:,psfspc2,:))');
 title('PSF');
 colorbar;
+
+return;
 % figure(25);
 % slice(xp,yp,zp,psf,[0],[],[0]);
 
