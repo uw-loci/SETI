@@ -18,7 +18,7 @@
 ;make sure spindle power is connected to m3/m5 outlet
 ;turn on mill spindle and outlet box
 ;set mach3 to the toolpath page
-;move the sample table such that the near left corner of the vice is under the near right corner of the vacuum shrowd
+;move the sample table such that the vice is centered on the right opening to the mill shroud
 ;zero the x-y position
 ;mount the sample into the vice using parallels
 ;cut one section off the top of the sample
@@ -28,7 +28,7 @@
 ;the sample should be in the upper left corner of the image to start
 ; above is for stitching
 ;turn on clara and open micromanager
-;capture one image and save in a new directory
+;capture one image and save in a new directory, with imagej
 ;write the starting position and image dimensions into this script for clara
 ;QCAM******, only do the following using Qcam
 ;align the sample under the Q microscope
@@ -55,14 +55,14 @@ Local $s_Subject = "SETI AutoUpdate"
 Local $as_Body[2]
 
 ;select which imaging system to use, both is ok
-$useClara = 0 ;set to 1 to use the Clara, zero to not use Clara
-$useQ = 1     ;set to 1 to use Q, zero to not use Q
+$useClara = 1 ;set to 1 to use the Clara, zero to not use Clara
+$useQ = 0     ;set to 1 to use Q, zero to not use Q
    
 ;values below will change for every new imaging session
-$xstClara = -2.0399 ;starting x position for imaging
-$ystClara = 0.5705 ;starting y position for imaging
-$xdimClara = 3
-$ydimClara = 4
+$xstClara = -1.8118 ;starting x position for imaging
+$ystClara = -0.8064  ;starting y position for imaging
+$xdimClara = 1
+$ydimClara = 1
 
 $xstQ = -6.0258
 $ystQ = 0.6166
@@ -76,8 +76,8 @@ $xstepQ = 0.245
 $ystepQ = 0.184
 
 ;These values potentially need to change each new acquisition
-$zstart = 3
-$zstop = 100
+$zstart = 1
+$zstop = 500
 
 For $z = $zstart to $zstop
    
