@@ -25,10 +25,8 @@ for (x=0; x<xdim; x++) {
 	run("Image Sequence...", "open=" + in_dir + "001_001_001.tif number=" + zdim + " starting=" + curZ + " sort");
 	curZ = curZ + zdim;
 
-	new_name = "" + x + "_" + y;
+	new_name = "" + y + "_" + x;
 	print(new_name);
-
-	wait(5000);
 	
 	//save current image
 	saveAs("Tiff", out_dir + new_name + ".tif");	
