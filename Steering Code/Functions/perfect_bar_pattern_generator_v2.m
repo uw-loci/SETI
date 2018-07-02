@@ -43,6 +43,8 @@ cd(save_path);
 
 %% Check for Conditions
 if mod(pixels_wide, n_rec) ~= 0
+    cd(hpath);
+    rmdir(save_path); % Deletes the path that can't be used.
     error(['For perfect bar patterns the pixels_wide must be ' ...
         'divisible by the n_rec (number of reconstruction images).']);
 end
