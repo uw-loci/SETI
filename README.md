@@ -13,6 +13,8 @@ Luxometer Testing contains all the code and protocols needed to perform testing 
 
 Example Data Set contains a full data set acquired using the scripts in the Steering Code which has been processed using the scripts in the Processing Code from a bead sample embedded using the protocols in the Embedding Protocol Folder.
 
+LICENSE.txt contains the GNU GPL v3.0 licensing for all the software present in this project. 
+
 
 
 All the old files have been moved to the Old Code folder and will have their functionality merged with the other folders. 
