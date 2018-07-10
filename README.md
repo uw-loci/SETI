@@ -9,7 +9,7 @@ Steering Code contains all the scripts and protocols needed for running the syst
 
 Processing Code contains all the scripts in a GUI fashion needed to perform post-processing on acquired images. 
 
-Luxometer Testing contains all the code and protocols needed to perform testing on the continuous intensity of a digital light projector's excitation at the sample plane. 
+DLP Consistency Testing contains all the code and protocols needed to perform testing on the continuous intensity of a digital light projector's excitation at the sample plane. 
 
 Modeling contains some scripts which were used to model the illumination performance of the SETI system.
 
