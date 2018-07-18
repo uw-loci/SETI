@@ -1,5 +1,6 @@
 function [] = SIM_Pattern_Generator_v3_func( save_path, pixels_wide, ...
-    pattern_width, pattern_height, reconstruction_type, pattern, file_type)
+    pattern_width, pattern_height, reconstruction_type, pattern, ...
+    file_type, aperture_percent)
 %   By: Niklas Gahm
 %   2017/08/21
 %
@@ -60,19 +61,57 @@ end
 %% Generators
 switch pattern
     case 'Perfect Bar'
-        perfect_bar_pattern_generator_v2(pattern_width, pattern_height, ...
-            pixels_wide, n_rec, naming_convention, file_type, save_path);
+        img = perfect_bar_pattern_generator_v3(pattern_width, ...
+            pattern_height, pixels_wide, n_rec, save_path);
     case 'Imperfect Bar'
-        imperfect_bar_pattern_generator_v2(pattern_width, ...
-            pattern_height, pixels_wide, n_rec, naming_convention, ...
-            file_type, save_path);
+        img = imperfect_bar_pattern_generator_v3(pattern_width, ...
+            pattern_height, pixels_wide, n_rec);
     case 'Imperfect Sine Wave'
-        imperfect_sinewave_pattern_generator_v2(pattern_width, ...
-            pattern_height, pixels_wide, n_rec, naming_convention, ...
-            file_type, save_path);
+        img = imperfect_sinewave_pattern_generator_v3(pattern_width, ...
+            pattern_height, pixels_wide, n_rec);
     otherwise
         error('Unsupported Pattern');
 end
 
+
+%% Generate Aperture Overlay
+if pattern_width > pattern_height
+    long_axis = pattern_width/2;
+    short_axis = pattern_height/2;
+else
+    long_axis = pattern_height/2;
+    short_axis = pattern_width/2;
+end
+
+overlay_radius = ceil(short_axis/sin(atan(short_axis/long_axis)));
+overlay = zeros((2*overlay_radius), (2*overlay_radius));
+
+aperture_radius = overlay_radius * (1 - (aperture_percent/100));
+
+for i = 1:(2*overlay_radius)
+    for j = 1:(2*overlay_radius)
+        if sqrt(((overlay_radius-i)^2)+((overlay_radius-j)^2)) ...
+                < aperture_radius 
+            overlay(i,j) = 1;
+        end
+    end
+end
+
+
+%% Combine Patterns with Aperture and Save
+img_overlay = overlay(...
+    (overlay_radius+1-(pattern_height/2)): ...
+    (overlay_radius+(pattern_height/2)), ...
+    (overlay_radius+1-(pattern_width/2)): ...
+    (overlay_radius+(pattern_width/2)));
+
+hpath = pwd;
+cd(save_path);
+for i = 1:n_rec
+    img{i} = img{i} .* img_overlay;
+    imwrite(img{i}, [naming_convention{i} num2str(pixels_wide) ...
+        file_type], file_type(2:end));
+end
+cd(hpath);
 
 end
