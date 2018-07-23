@@ -31,14 +31,7 @@ for i = 1:numel(dir_list)
             img_list = img_list(1:(end-1));
             
             % Get the Number of Sub Images
-            start_point = 0;
-            for n = 1:(numel(dir_list(i).name))
-                if strcmp(dir_list(i).name(n), ' ')
-                    start_point = n;
-                    break;
-                end
-            end
-            num_si = str2double(dir_list(i).name(start_point+1));
+            [~, num_si, ~, ~] = seti_folder_name_parser(dir_list(i).name);
             
             % Rename Files
             counter = 0;
