@@ -80,6 +80,8 @@ if numel(dir_list) == 4
     if unproc_found && ~proc_found
         copyfile('Unprocessed Data', 'Processed Data');
         file_path = [arch_path '\Processed Data'];
+        % Clean Navigation
+        cd(hpath);
         return;
     end
     
@@ -94,11 +96,17 @@ if numel(dir_list) == 4
                 rmdir('Processed Data', 's');
                 copyfile('Unprocessed Data', 'Processed Data');
                 file_path = [arch_path '\Processed Data'];
+                % Clean Navigation
+                cd(hpath);
                 return;
             case 'No'
+                % Clean Navigation
+                cd(hpath);
                 error(['No overwrite permission given. Please select ' ...
                     'a different folder to process.']);
             otherwise
+                % Clean Navigation
+                cd(hpath);
                 error('No overwrite confirmation given.');
         end
     end

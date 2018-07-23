@@ -24,7 +24,7 @@ for i = 1:(numel(fname))
         break;
     end
 end
-sub_img_id = fname((end(start_point-1)):end);
+sub_img_id = fname((end-(start_point-1)):end);
 fname = fname(1:(start_point+2));
 
 
@@ -36,7 +36,7 @@ for i = 1:(numel(fname))
         break;
     end
 end
-z_pos = fname((end(start_point-1)):end);
+z_pos = fname((end-(start_point-1)):end);
 fname = fname(1:(start_point+2));
 
 
@@ -48,7 +48,7 @@ for i = 1:(numel(fname))
         break;
     end
 end
-y_pos = fname((end(start_point-1)):end);
+y_pos = fname((end-(start_point-1)):end);
 fname = fname(1:(start_point+2));
 
 
@@ -60,7 +60,7 @@ for i = 1:(numel(fname))
         break;
     end
 end
-x_pos = fname((end(start_point-1)):end);
+x_pos = fname((end-(start_point-1)):end);
 
 
 end
