@@ -1,4 +1,4 @@
-function [ x_pos, y_pos, z_pos, sub_img_id, ftype] = ...
+function [ x_pos, y_pos, z_pos, sub_img_id, full_name, ftype] = ...
     seti_file_name_parser( fname )
 %% SETI File Name Parser
 %   By: Niklas Gahm
@@ -13,8 +13,8 @@ function [ x_pos, y_pos, z_pos, sub_img_id, ftype] = ...
 
 
 %% Get File Type
-[~, fname, ftype] = fileparts(fname);
-
+[~, full_name, ftype] = fileparts(fname);
+fname = full_name;
 
 %% Get Sub-Image ID
 start_point = 0;
