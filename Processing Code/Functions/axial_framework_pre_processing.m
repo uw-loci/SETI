@@ -1,5 +1,5 @@
 function [ img_sets ] = axial_framework_pre_processing( img_sets, ...
-    max_int, rec_mode, fpath, img_save_type)
+    max_int, rec_mode, fpath, img_save_type, save_intermediaries_flag)
 %% Axial Framework Pre-Processing 
 %   By: Niklas Gahm
 %   2018/07/23
@@ -40,13 +40,15 @@ end
 
 
 %% Save Pre-Processed Images
-for i = 1:numel(img_sets)
-    spath = [fpath '\' img_sets(i).name '\Pre-processed Images'];
-    mkdir(spath);
-    for j = 1:numel(img_sets(i).images) 
-        bfsave(uint8(img_sets(i).images(j).image_processed), ...
-            [spath '\' img_sets(i).images(j).name '_pre-processed' ...
-            img_save_type]);
+if save_intermediaries_flag == 1
+    for i = 1:numel(img_sets)
+        spath = [fpath '\' img_sets(i).name '\Pre-processed Images'];
+        mkdir(spath);
+        for j = 1:numel(img_sets(i).images)
+            bfsave(uint8(img_sets(i).images(j).image_processed), ...
+                [spath '\' img_sets(i).images(j).name '_pre-processed' ...
+                img_save_type]);
+        end
     end
 end
 

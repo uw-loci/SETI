@@ -18,49 +18,49 @@ fname = full_name;
 
 %% Get Sub-Image ID
 start_point = 0;
-for i = 1:(numel(fname))
-    if strcmp(fname(i), '_')
+for i = 0:(numel(fname)-1)
+    if strcmp(fname(end-i), '_')
         start_point = i;
         break;
     end
 end
 sub_img_id = fname((end-(start_point-1)):end);
-fname = fname(1:(start_point+2));
+fname = fname(1:(end-(start_point+2)));
 
 
 %% Get Z-Position
 start_point = 0;
-for i = 1:(numel(fname))
-    if strcmp(fname(i), '_')
+for i = 0:(numel(fname)-1)
+    if strcmp(fname(end-i), '_')
         start_point = i;
         break;
     end
 end
-z_pos = fname((end-(start_point-1)):end);
-fname = fname(1:(start_point+2));
+z_pos = str2double(fname((end-(start_point-1)):end));
+fname = fname(1:(end-(start_point+2)));
 
 
 %% Get Y-Position
 start_point = 0;
-for i = 1:(numel(fname))
-    if strcmp(fname(i), '_')
+for i = 0:(numel(fname)-1)
+    if strcmp(fname(end-i), '_')
         start_point = i;
         break;
     end
 end
-y_pos = fname((end-(start_point-1)):end);
-fname = fname(1:(start_point+2));
+y_pos = str2double(fname((end-(start_point-1)):end));
+fname = fname(1:(end-(start_point+2)));
 
 
 %% Get X-Position
 start_point = 0;
-for i = 1:(numel(fname))
-    if strcmp(fname(i), '_')
+for i = 0:(numel(fname)-1)
+    if strcmp(fname(end-i), '_')
         start_point = i;
         break;
     end
 end
-x_pos = fname((end-(start_point-1)):end);
+x_pos = str2double(fname((end-(start_point-1)):end));
 
 
 end
