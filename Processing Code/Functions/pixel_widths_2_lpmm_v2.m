@@ -21,6 +21,8 @@ for i = 1:numel(img_sets)
     if ~strcmp(img_sets(i).name, 'Bright Field')
         img_sets(i).lpmm = (field_of_view / pixel_lpmm_conv) * ...
             img_sets(i).pattern_pixel_width;
+    else
+        img_sets(i).lpmm = 0;
     end
 end
 

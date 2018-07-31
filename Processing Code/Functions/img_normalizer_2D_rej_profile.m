@@ -19,7 +19,7 @@ pix_max = 0;
 pix_min = 0;
 for i = 1:numel(img_sets)
     % Local Normalization on non-brright field images
-    if ~strcmp(img_sets(i).name, 'Bright Field')
+    if ~strcmp(img_sets(i).name(1:12), 'Bright Field')
         j = 1;
         num_si = img_sets(i).num_sub_img;
         while j <= numel(img_sets(i).images)

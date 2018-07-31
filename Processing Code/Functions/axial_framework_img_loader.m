@@ -30,13 +30,18 @@ for i = 1:numel(dir_list)
         valid_folder_counter = valid_folder_counter + 1;
         img_sets(valid_folder_counter).name = dir_list(i).name;
         img_sets(valid_folder_counter).images = struct;
-        if ~strcmp(dir_list(i).name, 'Bright Field')
+        if ~strcmp(dir_list(i).name(1:12), 'Bright Field')
             [img_sets(valid_folder_counter).pattern_pixel_width, ...
                 img_sets(valid_folder_counter).num_sub_img, ...
                 img_sets(valid_folder_counter).aperture_percent, ...
                 img_sets(valid_folder_counter).pattern ] = ...
                 seti_folder_name_parser( dir_list(i).name );
             img_sets(valid_folder_counter).images_reconstructed = {};
+        else
+            img_sets(valid_folder_counter).pattern_pixel_width = 0;
+            img_sets(valid_folder_counter).num_sub_img = 0;
+            img_sets(valid_folder_counter).aperture_percent = ...
+                str2double(dir_list(i).name(14:(end-2)));
         end
     end
 end
