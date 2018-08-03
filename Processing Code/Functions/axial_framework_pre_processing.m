@@ -41,6 +41,7 @@ end
 
 %% Save Pre-Processed Images
 if save_intermediaries_flag == 1
+    fprintf('\nSaving Pre-Processed Images\n');
     for i = 1:numel(img_sets)
         spath = [fpath '\' img_sets(i).name '\Pre-processed Images'];
         mkdir(spath);
