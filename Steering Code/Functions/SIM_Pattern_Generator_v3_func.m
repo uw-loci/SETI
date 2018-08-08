@@ -1,6 +1,6 @@
 function [] = SIM_Pattern_Generator_v3_func( save_path, pixels_wide, ...
     pattern_width, pattern_height, reconstruction_type, pattern, ...
-    file_type, aperture_percent)
+    file_type, aperture_percent, rotation)
 %   By: Niklas Gahm
 %   2017/08/21
 %
@@ -39,6 +39,7 @@ function [] = SIM_Pattern_Generator_v3_func( save_path, pixels_wide, ...
 %   2017/08/25 - Finished Imperfect Bar Patterns 
 %   2017/08/25 - Finished Imperfect Sine Wave Patterns
 %   2018/07/02 - Converted from a script into a function to work with GUI
+%   2018/08/08 - Updated to enable rotating whole pattern sets
 
 
 
@@ -58,19 +59,39 @@ switch reconstruction_type
 end
 
 
-%% Generators
+%% Generate Over-Sized Paramters
+[over_width, over_height] = size(imrotate(zeros(pattern_width, ...
+    pattern_height), 45));
+
+
+%% Pattern Generators
 switch pattern
     case 'Perfect Bar'
-        img = perfect_bar_pattern_generator_v3(pattern_width, ...
-            pattern_height, pixels_wide, n_rec, save_path);
+        img = perfect_bar_pattern_generator_v3(over_width, ...
+            over_height, pixels_wide, n_rec, save_path);
     case 'Imperfect Bar'
-        img = imperfect_bar_pattern_generator_v3(pattern_width, ...
-            pattern_height, pixels_wide, n_rec);
+        img = imperfect_bar_pattern_generator_v3(over_width, ...
+            over_height, pixels_wide, n_rec);
     case 'Imperfect Sine Wave'
-        img = imperfect_sinewave_pattern_generator_v3(pattern_width, ...
-            pattern_height, pixels_wide, n_rec);
+        img = imperfect_sinewave_pattern_generator_v3(over_width, ...
+            over_height, pixels_wide, n_rec);
     otherwise
         error('Unsupported Pattern');
+end
+
+
+%% Rotate Pattern
+for i = 1:n_rec
+    img{i} = imrotate(img{i}, rotation, 'Nearest', 'Crop');
+end
+
+
+%% Cut Images to Central Region
+for i = 1:n_rec
+    img{i} = img{i}( floor(1+((over_width-pattern_width)/2)) : ...
+        floor(over_width-((over_width-pattern_width)/2)) , ...
+        floor(1+((over_height-pattern_height)/2)) : ...
+        floor(over_height-((over_height-pattern_height)/2)));
 end
 
 
@@ -98,17 +119,21 @@ for i = 1:(2*overlay_radius)
 end
 
 
-%% Combine Patterns with Aperture and Save
-img_overlay = overlay(...
-    (overlay_radius+1-(pattern_height/2)): ...
-    (overlay_radius+(pattern_height/2)), ...
-    (overlay_radius+1-(pattern_width/2)): ...
-    (overlay_radius+(pattern_width/2)));
+%% Combine Patterns with Aperture
+img_overlay = overlay( ...
+    floor(overlay_radius+1-(pattern_width/2)): ...
+    floor(overlay_radius+(pattern_width/2)), ...
+    floor(overlay_radius+1-(pattern_height/2)): ...
+    floor(overlay_radius+(pattern_height/2)));
+for i = 1:n_rec
+    img{i} = img{i} .* img_overlay;
+end
 
+
+%% Save Patterns
 hpath = pwd;
 cd(save_path);
 for i = 1:n_rec
-    img{i} = img{i} .* img_overlay;
     imwrite(img{i}, [naming_convention{i} num2str(pixels_wide) ...
         file_type], file_type(2:end));
 end
