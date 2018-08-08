@@ -22,7 +22,7 @@ function varargout = SIM_Pattern_Generator_v3_GUI(varargin)
 
 % Edit the above text to modify the response to help SIM_Pattern_Generator_v3_GUI
 
-% Last Modified by GUIDE v2.5 18-Jul-2018 10:55:47
+% Last Modified by GUIDE v2.5 08-Aug-2018 13:08:54
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -61,6 +61,7 @@ set(handles.pattern_pixel_width, 'String', num2str(pixels_wide));
 set(handles.display_width, 'String', num2str(pattern_width));
 set(handles.display_height, 'String', num2str(pattern_height));
 set(handles.aperture, 'String', num2str(aperture_percent));
+set(handles.rotation, 'String', num2str(rotation));
 
 switch file_num
     case 3
@@ -114,6 +115,7 @@ pixels_wide = str2double(get(handles.pattern_pixel_width, 'String'));
 pattern_width = str2double(get(handles.display_width, 'String'));
 pattern_height = str2double(get(handles.display_height, 'String'));
 aperture_percent = str2double(get(handles.aperture, 'String'));
+rotation = str2double(get(handles.rotation, 'String'));
 
 % Get Reconstruction Type
 if get(handles.rb_3_sub, 'Value') == 1
@@ -143,7 +145,7 @@ if get(handles.rb_bmp, 'Value') == 1
 end
 save('.\Functions\GUI Last States\Pattern_Generator_Last_State.mat', ...
     'file_num', 'pattern', 'pixels_wide', 'pattern_width', ...
-    'pattern_height', 'aperture_percent', 'file_type');
+    'pattern_height', 'aperture_percent', 'file_type', 'rotation');
 
 % Generate Save Path and Check if the Patterns Were Already Generated. 
 hpath = pwd;
@@ -155,7 +157,7 @@ end
 cd(save_path);
 save_path = [save_path '\' reconstruction_type ' ' pattern ' ' ...
     num2str(pixels_wide) ' Pixels ' num2str(aperture_percent) ...
-    ' Aperture' ];
+    ' Aperture ' num2str(rotation) 'deg Rotation' ];
 pattern_exist_flag = 0;  % Pre-Existing Pattern Flag
 if exist(save_path, 'dir') == 0
     mkdir(save_path);
@@ -173,7 +175,7 @@ cd(hpath);
 if pattern_exist_flag == 0
     SIM_Pattern_Generator_v3_func(save_path, pixels_wide, pattern_width,...
         pattern_height, reconstruction_type, pattern, file_type, ...
-        aperture_percent);
+        aperture_percent, rotation);
 else
     uiwait(msgbox('Patterns Already Exist in the Patterns Folder.'));
 end
@@ -264,6 +266,29 @@ function aperture_Callback(hObject, eventdata, handles)
 % --- Executes during object creation, after setting all properties.
 function aperture_CreateFcn(hObject, eventdata, handles)
 % hObject    handle to aperture (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: edit controls usually have a white background on Windows.
+%       See ISPC and COMPUTER.
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end
+
+
+
+function rotation_Callback(hObject, eventdata, handles)
+% hObject    handle to rotation (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hints: get(hObject,'String') returns contents of rotation as text
+%        str2double(get(hObject,'String')) returns contents of rotation as a double
+
+
+% --- Executes during object creation, after setting all properties.
+function rotation_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to rotation (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    empty - handles not created until after all CreateFcns called
 
