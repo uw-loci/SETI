@@ -274,11 +274,15 @@ if edit_flag == 0
     while 1
         fname = inputdlg('Configuration File Name', ...
             'Enter a New Configuration File Name');
-        [~, fname, ~] = fileparts(fname{1});
-        if exist([fname '.mat'], 'file') == 0
-            break;
+        if ~isempty(fname)
+            [~, fname, ~] = fileparts(fname{1});
+            if exist([fname '.mat'], 'file') == 0
+                break;
+            else
+                uiwait(msgbox('Filename Already in Use.'));
+            end
         else
-            uiwait(msgbox('Filename Already in Use.'));
+            uiwait(msgbox('Please Enter a Configuration Name.'));
         end
     end
     sname = [save_path '\' fname '.mat'];
@@ -293,7 +297,7 @@ save(sname, 'obj_na', 'obj_mag', 'working_distance', 'f_number', ...
 
 % Close GUI
 closereq;
-    
+
 
 
 % --- Executes on button press in edit_existing_button.
@@ -307,25 +311,32 @@ global edit_flag
 global save_path
 global existing_file_name
 
-% Set the Edit Existing Flag
-edit_flag = 1;
-
 % Get Existing Configuration File
 cpath = pwd;
-cd(save_path)
-[existing_file_name, existing_file_path] = ...
-    uigetfile('*.mat');
+edit_file_selected_flag = 1;
+    cd(save_path)
+    [existing_file_name, existing_file_path] = ...
+        uigetfile('*.mat');
+if existing_file_name == 0
+    % User closed the window before selecting a file
+    edit_file_selected_flag = 0;
+end
 cd(cpath);
 
-% Load Congigutaion File
-load([existing_file_path '\' existing_file_name]);
-
-% Set Existing Values
-set(handles.obj_na, 'String', num2str(obj_na));
-set(handles.obj_mag, 'String', num2str(obj_mag));
-set(handles.working_distance, 'String', num2str(working_distance));
-set(handles.f_number, 'String', num2str(f_number));
-set(handles.refractive_index_medium, 'String', ...
-    num2str(refractive_index_medium));
-set(handles.wavelength, 'String', num2str(wavelength));
-set(handles.pixel_lpmm_conv, 'String', num2str(pixel_lpmm_conv));
+if edit_file_selected_flag == 1
+    % Set the Edit Existing Flag
+    edit_flag = 1;
+    
+    % Load Congigutaion File
+    load([existing_file_path '\' existing_file_name]);
+    
+    % Set Existing Values
+    set(handles.obj_na, 'String', num2str(obj_na));
+    set(handles.obj_mag, 'String', num2str(obj_mag));
+    set(handles.working_distance, 'String', num2str(working_distance));
+    set(handles.f_number, 'String', num2str(f_number));
+    set(handles.refractive_index_medium, 'String', ...
+        num2str(refractive_index_medium));
+    set(handles.wavelength, 'String', num2str(wavelength));
+    set(handles.pixel_lpmm_conv, 'String', num2str(pixel_lpmm_conv));
+end
