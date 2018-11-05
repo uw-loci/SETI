@@ -1,4 +1,4 @@
-function [ img_sets ] = img_normalizer_2D_rej_profile( img_sets, ...
+function [ img_sets ] = img_normalizer_2D_rej_profile_v2( img_sets, ...
     new_intensity_max )
 %% Grayscale Image Normalizer for Images in Rejection Profile Mode
 %   By: Niklas Gahm
@@ -11,6 +11,7 @@ function [ img_sets ] = img_normalizer_2D_rej_profile( img_sets, ...
 %
 %   2017/07/24 - Started 
 %   2017/07/26 - Finished
+%   2018/11/05 - Updated for Framework v11
 
 
 
@@ -26,18 +27,18 @@ for i = 1:numel(img_sets)
             % Get local max values
             local_max = 0;
             for k = 0:(num_si-1)
-                if local_max < max(max(img_sets(i).images(j+k).image))
-                    local_max = max(max(img_sets(i).images(j+k).image));
+                if local_max < max(max(img_sets(i).images(j+k).flat))
+                    local_max = max(max(img_sets(i).images(j+k).flat));
                 end
             end
             
             % Local Normalization
             for k = 0:(num_si-1)
                 img_sets(i).images(j+k).image_processed = ...
-                ((img_sets(i).images(j+k).image - ...
-                min(min(img_sets(i).images(j+k).image))) / ...
-                (max(max(img_sets(i).images(j+k).image)) - ...
-                min(min(img_sets(i).images(j+k).image)))) * local_max;
+                ((img_sets(i).images(j+k).flat - ...
+                min(min(img_sets(i).images(j+k).flat))) / ...
+                (max(max(img_sets(i).images(j+k).flat)) - ...
+                min(min(img_sets(i).images(j+k).flat)))) * local_max;
             end
             
             % Increment Counter
@@ -47,7 +48,7 @@ for i = 1:numel(img_sets)
         % Handles the bright field image set
         for j = 1:numel(img_sets(i).images)
             img_sets(i).images(j).image_processed = ...
-                img_sets(i).images(j).image;
+                img_sets(i).images(j).flat;
         end
     end
     

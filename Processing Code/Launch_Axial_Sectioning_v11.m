@@ -1,4 +1,4 @@
-function [ ] = Launch_Axial_Sectioning_v10( )
+function [ ] = Launch_Axial_Sectioning_v11( )
 %% Axial Sectioning Launcher
 %   This launches the axial sectioning and reconstruction GUI
 % 
@@ -27,7 +27,7 @@ addpath('./Functions');
 
 
 %% Launch GUI Function
-Axial_Sectioning_Framework_v10_GUI; 
+Axial_Sectioning_Framework_v11_GUI; 
 
 
 %% Return to Starting Point
