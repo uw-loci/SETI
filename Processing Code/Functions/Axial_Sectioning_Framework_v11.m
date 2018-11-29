@@ -1,7 +1,8 @@
 function [] = Axial_Sectioning_Framework_v11(...
     steering_code_raw_data_flag, microscope_configuration, ...
     img_save_type, rec_mode, file_path, max_int, sim_points, ...
-    save_intermediaries_flag, flat_field_flag, flat_field_path)
+    save_intermediaries_flag, flat_field_flag, flat_field_path, ...
+    overlap_percent, threshold_percent)
 %% Axial Sectioning Structured Illumination Reconstruction Framework
 %   By: Niklas Gahm
 %   2017/06/29
@@ -186,7 +187,8 @@ fprintf('\nSorting Reconstructed Images\n');
 
 %% Tiling/Mosaicing 
 fprintf('\nTiling Reconstructed Images\n');
-[ img_sets ] = axial_img_tiling( img_sets, num_x, num_y );
+[ img_sets ] = axial_img_tiling_v3( img_sets, num_x, num_y, num_z, ...
+    overlap_percent, threshold_percent);
 
 
 %% Save Tiled Images as Stacks

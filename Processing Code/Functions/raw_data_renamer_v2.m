@@ -22,7 +22,8 @@ dir_list = dir;
 dir_list = dir_list(3:end);
 for i = 1:numel(dir_list)
     if isdir(dir_list(i).name)
-        if ~strcmp(dir_list(i).name(1:12), 'Bright Field')
+        if ~strcmp(dir_list(i).name(1:12), 'Bright Field') && ...
+                ~strcmp(dir_list(i).name(1:2), 'BF')
             %% Normal Data Case
             cd(dir_list(i).name);
             img_list = dir;
