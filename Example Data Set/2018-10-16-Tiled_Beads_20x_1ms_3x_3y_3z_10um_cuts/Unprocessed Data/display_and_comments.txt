@@ -1,0 +1,32 @@
+{
+  "Channels": [
+    {
+      "Name": "Default0",
+      "DisplayMode": 1,
+      "HistogramMax": -1,
+      "Max": 16383,
+      "Gamma": 1,
+      "Min": 0,
+      "Color": -1
+    },
+    {
+      "Name": "Default1",
+      "DisplayMode": 1,
+      "HistogramMax": -1,
+      "Max": 16383,
+      "Gamma": 1,
+      "Min": 0,
+      "Color": -1
+    },
+    {
+      "Name": "Default2",
+      "DisplayMode": 1,
+      "HistogramMax": -1,
+      "Max": 16383,
+      "Gamma": 1,
+      "Min": 0,
+      "Color": -1
+    }
+  ],
+  "Comments": {"Summary": ""}
+}
