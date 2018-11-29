@@ -1,0 +1,17 @@
+As a direct output from the steering code you will have one top directory with multiple sub-directories.
+
+
+The top directory should end in:
+_[number of images in the x-dimension]x_[number of images in the y-dimension]y_[number of images in the z-dimension]z_[depth of cutting between z-slices]um_cuts
+e.g. 2018-10-16-Tiled_Beads_20x_1ms_3x_3y_3z_10um_cuts   where 2018-10-16-Tiled_Beads_20x_1ms is the data set name 
+
+
+The sub-directories come in two formats:
+"Bright Field" or "BF" for the bright field matched locations if present in the run
+and
+[pattern pixel width used]ppx [number of sub-images]si [percent aperture used]ap [pattern used]
+
+A typical set of sub-directories would look like:
+18ppx 3si 0ap perfect bar
+27ppx 3si 10ap perfect bar 
+Bright Field
