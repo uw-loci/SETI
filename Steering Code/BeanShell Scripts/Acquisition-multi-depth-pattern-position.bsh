@@ -1,0 +1,166 @@
+//methods
+activateMill(){
+	mmc.setState("Arduino-Switch", 32);  //pin 13 HIGH, triggers milling cycle (pin 15 on mill)
+	mmc.setShutterOpen(true);
+}
+waitForMillingStart(){
+	//wait for signal from mill to signal the beginning of a cycle (M140)
+	while(Double.valueOf(mmc.getProperty("Arduino-Input", "AnalogInput5")) > 500){
+			gui.message("ACTIVATING MILL");
+			mmc.sleep(50);
+			//gui.message(mmc.getProperty("Arduino-Input", "AnalogInput3"));
+		}
+}
+shutterOff(){
+	//once milling cycle has started, shutter off
+	mmc.setShutterOpen(false);
+	mmc.setState("Arduino-Switch", 0);	//all pins LOW
+}
+snapBF(int currCut, int currDep){
+		mmc.setExposure(exposure/2);
+		mmc.setShutterOpen(true);
+		//send a 50ms HIGH signal to DLP to trigger the next pattern
+		mmc.setState("Arduino-Switch", 1);
+		mmc.sleep(20);
+		mmc.setState("Arduino-Switch", 0);
+//		//make sure that dlp is on
+		mmc.sleep(150);
+		//snap and save an image
+		gui.snapAndAddImage(acquName, currCut, 0, 0, currDep);
+		gui.message("BF: Depth "+currDep + " Image " + (currCut+1) +" snapped");
+		
+		//set shutter closed
+		mmc.setShutterOpen(false);
+		mmc.waitForSystem();
+}
+snapCurrPattern(int currCut, int currDep, int currPtrn, int cutXdep){ 
+	//physical slices, curr optical slices, #on each slice, total ims per slice
+		mmc.setExposure(exposure);
+		for (int l = 0; l < 3; l++){
+		//set shutter open
+		mmc.setShutterOpen(true);
+		//send a 50ms HIGH signal to DLP to trigger the next pattern
+		mmc.setState("Arduino-Switch", 1);
+		mmc.sleep(20);
+		mmc.setState("Arduino-Switch", 0);
+//		//make sure that dlp is on
+		mmc.sleep(150);
+		//snap and save an image
+		gui.snapAndAddImage(acquName, l+3*currCut, 0, 0, currPtrn+3*currDep+2);
+		gui.message("Slice: "+(currCut)+" dep: " +(currDep)+" ptrn: "+ (currPtrn+1) + " image: " + (l+1) +" snapped");
+		
+		//set shutter closed
+		mmc.setShutterOpen(false);
+		mmc.waitForSystem();
+	}
+}
+waitForImagingReady(){
+	mmc.sleep(500);
+	while (Double.valueOf(
+		mmc.getProperty("Arduino-Input", "AnalogInput3")
+	) > 500){
+		gui.message("Waiting for imaging position");
+		mmc.sleep(10);
+		}
+}
+
+imagingTrigger(){
+	activateMill();
+	waitForImagingReady();
+	shutterOff();
+}
+millingTrigger(){
+	activateMill();
+	waitForMillingStart();
+	shutterOff();
+}
+
+
+
+
+
+gui.closeAllAcquisitions();
+gui.clearMessageWindow();
+mmc.setShutterOpen(false);
+mmc.setState("Arduino-Switch", 0);	//all pins LOW
+
+
+//---------------- INPUTS ----------------------------------------
+depthOfSectioning = 10;// total depth of physical sectioning in um (10um per cut).
+								//eg: 200 for 200um and 20 cuts
+dep = 1; // including the top surface, how many optical slices (10 um each)?
+numPatterns = 3; // number of different patterns used. Each pattern corresponds to 3 images. 
+// set camera exposure in ms				
+exposure = 1; 
+objective=20;
+xTiles=1;
+yTiles=1;
+zStepSize=10;
+
+name = " "+ objective+"x_" + exposure+"ms_" + xTiles+"x_" + yTiles+"y_" + 
+	depthOfSectioning/zStepSize+"z_" + zStepSize+"um_cuts";
+
+acquName = "2018-11-14-Tissue-18,24,30ppx" + name;  //name of folder generated
+rootDir = "C:/Users/admin2/Box Sync/SETI/Tissue-Pattern-Tests/"; //address of mother folder
+show = false;	//to display every image taken as if you clicked snap
+save = true;	//to save the images
+//--------------- END INPUT ----------------------------------------
+
+
+nrFrames = 0;  
+nrChannels = 0;
+nrSlices = 0;
+nrPositions = (numPatterns+1)*dep; //(numPatterns + bright field) * depths
+/*
+ * Folder names:
+ * eg. 2 depths, 3 patterns:
+ * Pos0: BF top
+ * Pos1: BF 10um below top
+ * Pos2-4: Patterns 0-2, top surface
+ * Pos5-7: Patterns 0-2, 10um below top surface
+ */
+
+cuts = depthOfSectioning/10;
+//Process begins
+gui.openAcquisition(acquName, rootDir, nrFrames, nrChannels, nrSlices,
+							nrPositions, show, save);
+
+// for each cut
+for(int i = 0; i < cuts; i++){
+	gui.message("slice: " + i);
+	// initiate arduino pin after machine cycle. 0 for LOW at all pins, 1 for HIGH at pin 8
+	mmc.setState("Arduino-Switch", 0);
+	mmc.setShutterOpen(false); // all 
+	//for each depth
+	for (int j = 0; j<dep; j++){
+		imagingTrigger();
+		snapBF(i,j);
+		//for each pattern
+		for (int k = 0; k < numPatterns; k++){
+			snapCurrPattern(i,j,k,cuts*dep);
+		}
+	}
+
+
+	//after images taken, trigger the milling cycle
+	millingTrigger();
+
+	//wait for the milling to finish. Check on the status every 500ms
+	while (Double.valueOf(
+			mmc.getProperty("Arduino-Input", "AnalogInput5")
+		) < 500) {
+		mmc.sleep(500);
+	}
+	//when finished,
+	gui.message("Milling Done");
+	mmc.sleep(2000);
+}
+
+//after all cuts done, close aquisition
+gui.closeAllAcquisitions();
+gui.message("ACQUISITION Done");
+mmc.setShutterOpen(false);
+mmc.setState("Arduino-Switch", 0);	//all pins LOW
+
+
+
