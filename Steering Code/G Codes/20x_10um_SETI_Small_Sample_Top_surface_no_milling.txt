@@ -1,0 +1,22 @@
+G21	(Use metric units)
+(top surface)
+M290	(Send "OK to image" signal)
+M0	(Pause, wait for next "cycle start" trigger from Arduino)
+M291	(End "OK to image" signal)
+
+
+(mill at -10um)
+M140	(Send "Milling in progress" signal)
+
+
+G90	(return to origianl X-Y position)
+G00 
+X0
+Y0
+
+M141	(End "Milling in progress" signal)
+M30	(Rewind)
+
+
+
+(50um, 46 mm/min = 3% slow jog rate)
