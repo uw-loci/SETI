@@ -22,7 +22,7 @@ function varargout = Axial_Sectioning_Framework_v11_GUI(varargin)
 
 % Edit the above text to modify the response to help Axial_Sectioning_Framework_v11_GUI
 
-% Last Modified by GUIDE v2.5 29-Nov-2018 09:50:32
+% Last Modified by GUIDE v2.5 30-Nov-2018 17:33:42
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -115,9 +115,23 @@ if fpath == 0
     error('No Folder Selected for Processing.')
 end
 
+% Get BitDepth
+switch get(handles.bit_depth, 'Value')
+    case 1
+        bit_depth = 8;
+    case 2
+        bit_depth = 16;
+    case 3
+        bit_depth = 32;
+    case 4
+        bit_depth = 64;
+    otherwise
+        error('Invalid Output Bit Depth Selected');
+end
+
+
 % Get Values
 steering_code_raw_data_flag = get(handles.steering_code_raw, 'Value');
-max_int = str2double(get(handles.max_int, 'String'));
 sim_points = str2double(get(handles.sim_points, 'String'));
 overlap_percent = str2double(get(handles.overlap_percent, 'String')) / 100;
 threshold_percent = str2double(get(handles.threshold_percent, ...
@@ -146,7 +160,7 @@ rec_mode = rec_mode_list{rec_mode_num};
 % Run Axial Sectioning Framework
 Axial_Sectioning_Framework_v11(steering_code_raw_data_flag, ...
     microscope_configuration_file, img_save_type, rec_mode, fpath, ...
-    max_int, sim_points, save_intermediaries_flag, flat_field_flag, ...
+    bit_depth, sim_points, save_intermediaries_flag, flat_field_flag, ...
     flat_field_path, overlap_percent, threshold_percent);
 
 % Close GUI
@@ -160,6 +174,7 @@ function steering_code_raw_Callback(hObject, eventdata, handles)
 % handles    structure with handles and user data (see GUIDATA)
 
 % Hint: get(hObject,'Value') returns toggle state of steering_code_raw
+
 
 
 % --- Executes on selection change in microscope_config_file.
@@ -218,6 +233,7 @@ if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgr
 end
 
 
+
 % --- Executes on selection change in rec_mode_select.
 function rec_mode_select_Callback(hObject, eventdata, handles)
 % hObject    handle to rec_mode_select (see GCBO)
@@ -226,15 +242,12 @@ function rec_mode_select_Callback(hObject, eventdata, handles)
 
 % Make Sure a Valid Selection Is Made
 rec_mode_num = get(handles.rec_mode_select, 'Value');
-if rec_mode_num > 4
+if rec_mode_num > 3
     uiwait(msgbox('Please Select a Supported Form of Reconstruction'));
 end
 
 % Set Panel Visibility
 rec_mode_list = get(handles.rec_mode_select, 'String');
-if rec_mode_num > 3
-    error('Unsupported Reconstrution Mode');
-end
 rec_mode = rec_mode_list{rec_mode_num};
 handles = panel_visibility_setter(rec_mode, handles);
 
@@ -255,6 +268,7 @@ if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgr
 end
 
 
+
 % --- Executes on button press in process_folder_selection.
 function process_folder_selection_Callback(hObject, eventdata, handles)
 % hObject    handle to process_folder_selection (see GCBO)
@@ -272,28 +286,6 @@ end
 % Selected Folder to Process Tooltip
 set(handles.text5, 'TooltipString', fpath);
 
-
-
-function max_int_Callback(hObject, eventdata, handles)
-% hObject    handle to max_int (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
-
-% Hints: get(hObject,'String') returns contents of max_int as text
-%        str2double(get(hObject,'String')) returns contents of max_int as a double
-
-
-% --- Executes during object creation, after setting all properties.
-function max_int_CreateFcn(hObject, eventdata, handles)
-% hObject    handle to max_int (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    empty - handles not created until after all CreateFcns called
-
-% Hint: edit controls usually have a white background on Windows.
-%       See ISPC and COMPUTER.
-if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
-    set(hObject,'BackgroundColor','white');
-end
 
 
 % --- Executes on button press in save_intermediaries_flag.
@@ -326,6 +318,7 @@ function sim_points_CreateFcn(hObject, eventdata, handles)
 if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
     set(hObject,'BackgroundColor','white');
 end
+
 
 
 % --- Executes on button press in flat_field_flag.
@@ -399,6 +392,31 @@ end
 
 
 
+% --- Executes on selection change in bit_depth.
+function bit_depth_Callback(hObject, eventdata, handles)
+% hObject    handle to bit_depth (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hints: contents = cellstr(get(hObject,'String')) returns bit_depth contents as cell array
+%        contents{get(hObject,'Value')} returns selected item from bit_depth
+
+
+% --- Executes during object creation, after setting all properties.
+function bit_depth_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to bit_depth (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: popupmenu controls usually have a white background on Windows.
+%       See ISPC and COMPUTER.
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end
+
+
+
+
 
 % Function to check and set Panel visibility
 function handles = panel_visibility_setter(rec_mode, handles)
@@ -417,8 +435,8 @@ switch rec_mode
         
 end
 
-% Function to set all the ToolTip Strings
 
+% Function to set all the ToolTip Strings
 function handles = tooltip_string_setter(handles)
 % Reconstruction Mode Tooltip
 rec_mode_str_1 = 'Select how the processing code will reconstruct your images.'; 
@@ -459,10 +477,10 @@ selected_folder_flat_field_str_full = get(handles.text8, 'String');
 set(handles.text8, 'TooltipString', ...
     selected_folder_flat_field_str_full);
 
-% Maximum Integer Tooltip
-max_int_str_full = 'Set the maximum integer value output images should contain.';
-set(handles.text6, 'TooltipString', max_int_str_full);
-set(handles.max_int, 'TooltipString', max_int_str_full);
+% Bit Depth Tooltip
+bit_depth_str_full = 'Select the Bit Depth output images should contain.';
+set(handles.text6, 'TooltipString', bit_depth_str_full);
+set(handles.bit_depth, 'TooltipString', bit_depth_str_full);
 
 % Image Save Type Tif Tooltip
 img_save_type_tif_str_full = 'Select for all output images to be saved as .tif';
