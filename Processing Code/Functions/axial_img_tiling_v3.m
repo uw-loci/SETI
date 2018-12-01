@@ -27,7 +27,13 @@ for i = 1:numel(img_sets)
     n_rows = numel(img_sets(i).images_reconstructed) / num_x;
     img_sets(i).images_tiled.x_combined = cell(1,n_rows);
     
+    wait_element = waitbar((0/n_rows), sprintf('Tiling X-Rows of %s', ...
+        img_sets(i).name));
+    
     for j = 1:n_rows
+        
+        waitbar(((j-1)/n_rows), wait_element);
+        
         % Initialize the X-row being built
         start_img = 1 + (num_x * (j-1));
         mosaic = img_sets(i).images_reconstructed(start_img).image;
@@ -120,6 +126,7 @@ for i = 1:numel(img_sets)
         % Save Completed X-Row
         img_sets(i).images_tiled.x_combined{j} = mosaic;
     end
+    close(wait_element);
 end
 
 
@@ -128,7 +135,13 @@ for i = 1:numel(img_sets)
     n_col = numel(img_sets(i).images_tiled.x_combined) / num_y;
     img_sets(i).images_tiled.xy_combined = cell(1,n_col);
     
+    wait_element = waitbar((0/n_col), sprintf( ...
+        'Tiling Y Column of Rows of %s', img_sets(i).name));
+    
     for j = 1:n_col
+        
+        waitbar(((j-1)/n_col), wait_element);
+        
         % Initialize the Y-column being built
         start_img = 1 + (num_y * (j-1));
         mosaic = img_sets(i).images_tiled.x_combined{start_img};
@@ -221,6 +234,7 @@ for i = 1:numel(img_sets)
         % Save Completed XY-Grid
         img_sets(i).images_tiled.xy_combined{j} = mosaic;
     end
+    close(wait_element);
 end
 
 
@@ -229,7 +243,13 @@ for i = 1:numel(img_sets)
     % Initialize the Z-stack being built
     mosaic = img_sets(i).images_tiled.xy_combined{1};
     
+    wait_element = waitbar((0/(num_z-1)), sprintf(...
+        'Registering Z-Slices of %s', img_sets(i).name));
+    
     for j = 1:(num_z-1)
+        
+        waitbar(((j-1)/(num_z-1)), wait_element);
+        
         % Tile to be added
         growth_tile = img_sets(i).images_tiled.xy_combined{1 + j};
         
@@ -298,6 +318,7 @@ for i = 1:numel(img_sets)
         % Replace old mosaic
         mosaic = temp_mosaic;
     end
+    close(wait_element);
     
     % Save Completed XYZ-Cube
     img_sets(i).images_tiled.original = mosaic;
