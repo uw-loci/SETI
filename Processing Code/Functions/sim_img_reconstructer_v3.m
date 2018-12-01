@@ -1,5 +1,5 @@
 function [ img_sets ] = sim_img_reconstructer_v3( img_sets, file_path, ...
-    img_save_type )
+    img_save_type, bit_depth )
 % SIM Image Reconstruction
 %   By: Niklas Gahm
 %   2017/06/29
@@ -185,11 +185,17 @@ end
 for i = 1:numel(img_sets)
     spath = [file_path '\' img_sets(i).name '\Reconstructed Images'];
     mkdir(spath);
+    wait_element = waitbar((1/numel(img_sets(i).images_reconstructed)), ...
+            sprintf('Saving Reconstructed Images From %s', ...
+            img_sets(i).name));
     for j = 1:numel(img_sets(i).images_reconstructed)
-        bfsave(uint8(img_sets(i).images_reconstructed(j).image), ...
+        waitbar((j/numel(img_sets(i).images_reconstructed)), wait_element);
+        bfsave(img_bit_depth_converter(...
+            img_sets(i).images_reconstructed(j).image, bit_depth), ...
             [spath '\' img_sets(i).images_reconstructed(j).name ...
             img_save_type]);
     end
+    close(wait_element);
 end
 
 end

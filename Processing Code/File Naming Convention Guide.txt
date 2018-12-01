@@ -2,7 +2,7 @@ As a direct output from the steering code you will have one top directory with m
 
 
 The top directory should end in:
-_[number of images in the x-dimension]x_[number of images in the y-dimension]y_[number of images in the z-dimension]z_[depth of cutting between z-slices]um_cuts
+_[number of images in the x-dimension]x_[number of images in the y-dimension]y_[number of images in the z-dimension]z_[depth of cutting between z-slices][cut scale (um,mm,cm)]_cuts
 e.g. 2018-10-16-Tiled_Beads_20x_1ms_3x_3y_3z_10um_cuts   where 2018-10-16-Tiled_Beads_20x_1ms is the data set name 
 
 

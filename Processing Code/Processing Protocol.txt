@@ -1,0 +1,13 @@
+This protocol describes how to process data from the SETI system.
+Author: Niklas Gahm
+Last Revision: 2018/11/30
+
+
+1. Run Launch_Axial_Sectioning_v11.m 
+2. In the GUI select the reconstruction mode
+	- Individual Images is if you wish to process an unrelated collection of images acquired with SETI 
+	- Image Stack is if you acquired an image cube of data 
+	- Rejection Profile is if you are processing data acquired through the special rejection profile mode and want to quantify the intensity falloff from rejection
+3. Set all options (NOTE: All options have mouse-over text describing what they do/mean)
+4. Select a valid folder to process through the Select Folder to Process Button
+5. Push the Process Data button 
