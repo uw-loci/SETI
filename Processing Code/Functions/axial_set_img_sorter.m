@@ -76,7 +76,7 @@ for i = 1:numel(edge_sets)
         bounds(1) = edge_sets(i-1);
     end
     [~,rearranged_ind] = ...
-        sort(cell2mat(squeeze(temp(8,1,(bounds(1)+1):bounds(2)))));
+        sort(cell2mat(squeeze(temp(7,1,(bounds(1)+1):bounds(2)))));
     img_sets((bounds(1)+1):bounds(2)) = ...
         img_sets(bounds(1) + rearranged_ind);
 end
@@ -90,7 +90,7 @@ for i = 1:numel(edge_sets)
         bounds(1) = edge_sets(i-1);
     end
     [~,rearranged_ind] = ...
-        sort(cell2mat(squeeze(temp(5,1,(bounds(1)+1):bounds(2)))));
+        sort(cell2mat(squeeze(temp(4,1,(bounds(1)+1):bounds(2)))));
     img_sets((bounds(1)+1):bounds(2)) = ...
         img_sets(bounds(1) + rearranged_ind);
 end
