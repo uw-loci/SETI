@@ -78,6 +78,13 @@ if save_intermediaries_flag == 1
 end
 
 
+%% Clean Memory Usage
+for i = 1:numel(img_sets)
+    fields = {'image','flat'};
+    img_sets(i).images = rmfield(img_sets(i).images, fields);
+end
+
+
 %% Clean Navigation
 cd(hpath);
 end

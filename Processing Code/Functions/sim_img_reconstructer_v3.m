@@ -198,4 +198,11 @@ for i = 1:numel(img_sets)
     close(wait_element);
 end
 
+
+%% Clean Memory Usage
+% for i = 1:numel(img_sets)
+    img_sets = rmfield(img_sets, 'images');
+%     img_sets(i) = rmfield(img_sets(i), 'images');
+% end
+
 end

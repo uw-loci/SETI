@@ -126,8 +126,12 @@ for i = 1:numel(img_sets)
         % Save Completed X-Row
         img_sets(i).images_tiled.x_combined{j} = mosaic;
     end
+    
     close(wait_element);
 end
+
+% Clean Reconstructed Memory Usage
+img_sets = rmfield(img_sets, 'images_reconstructed');
 
 
 %% Y Tiling
@@ -234,7 +238,14 @@ for i = 1:numel(img_sets)
         % Save Completed XY-Grid
         img_sets(i).images_tiled.xy_combined{j} = mosaic;
     end
+    
     close(wait_element);
+end
+
+% Clean X-Row Memory Usage
+for i = 1:numel(img_sets)
+    img_sets(i).images_tiled = rmfield(img_sets(i).images_tiled, ...
+        'x_combined');
 end
 
 
@@ -318,10 +329,16 @@ for i = 1:numel(img_sets)
         % Replace old mosaic
         mosaic = temp_mosaic;
     end
+    
     close(wait_element);
     
     % Save Completed XYZ-Cube
     img_sets(i).images_tiled.original = mosaic;
 end
 
+% Clean XY Tile Memory Usage
+for i = 1:numel(img_sets)
+    img_sets(i).images_tiled = rmfield(img_sets(i).images_tiled, ...
+        'xy_combined');
+end
 end
