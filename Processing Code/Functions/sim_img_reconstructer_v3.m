@@ -22,7 +22,8 @@ function [ img_sets ] = sim_img_reconstructer_v3( img_sets, file_path, ...
 
 %% Reconstruct Images
 for i = 1:numel(img_sets)
-    if ~strcmp(img_sets(i).name(1:12), 'Bright Field')
+    if ~strcmpi(img_sets(i).name, 'Bright Field') && ...
+            ~strcmpi(img_sets(i).name, 'BF')
         j = 1;
         num_si = img_sets(i).num_sub_img;
         recon_counter = 1;
