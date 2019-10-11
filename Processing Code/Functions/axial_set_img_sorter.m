@@ -34,21 +34,29 @@ for i = 1:numel(img_sets)
         brightfield_ind = [brightfield_ind, i];
     end
 end
-img_sets = [img_sets(brightfield_ind), img_sets(perfect_bar_ind), ...
-    img_sets(imperfect_bar_ind), img_sets(imperfect_sinewave_ind)];
-edge_sets = [numel(brightfield_ind), (numel(perfect_bar_ind) + ...
-    numel(brightfield_ind)), (numel(perfect_bar_ind) + ...
-    numel(imperfect_bar_ind) + numel(brightfield_ind))];
-% Clean Edge Sets
-for i = 1:numel(edge_sets)
-    for j = 2:numel(edge_sets)
-        if edge_sets(j-1) == edge_sets(j)
-            if j == numel(edge_sets)
-                edge_sets = edge_sets(1:(j-1));
-            else
-                edge_sets = [edge_sets(1:(j-1)), edge_sets((j+1):end)];
-            end 
-            break;
+
+if (numel(perfect_bar_ind) + numel(imperfect_bar_ind) + ...
+        numel(imperfect_sinewave_ind) + numel(brightfield_ind)) ...
+        < numel(img_sets)
+    edge_sets = numel(img_sets);
+else
+    
+    img_sets = [img_sets(brightfield_ind), img_sets(perfect_bar_ind), ...
+        img_sets(imperfect_bar_ind), img_sets(imperfect_sinewave_ind)];
+    edge_sets = [numel(brightfield_ind), (numel(perfect_bar_ind) + ...
+        numel(brightfield_ind)), (numel(perfect_bar_ind) + ...
+        numel(imperfect_bar_ind) + numel(brightfield_ind))];
+    % Clean Edge Sets
+    for i = 1:numel(edge_sets)
+        for j = 2:numel(edge_sets)
+            if edge_sets(j-1) == edge_sets(j)
+                if j == numel(edge_sets)
+                    edge_sets = edge_sets(1:(j-1));
+                else
+                    edge_sets = [edge_sets(1:(j-1)), edge_sets((j+1):end)];
+                end
+                break;
+            end
         end
     end
 end
