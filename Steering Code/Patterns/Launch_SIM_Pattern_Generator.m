@@ -24,11 +24,10 @@ hpath = pwd;
 
 %% Add Required Path
 addpath('./Functions');
-addpath('./Patterns');
 
 
 %% Launch GUI Function
-SIM_Pattern_Generator_v3_GUI; 
+SIM_Pattern_Generator; 
 
 
 %% Return to Starting Point

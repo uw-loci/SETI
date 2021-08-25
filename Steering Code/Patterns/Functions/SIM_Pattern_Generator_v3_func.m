@@ -23,6 +23,8 @@ function [] = SIM_Pattern_Generator_v3_func( save_path, pixels_wide, ...
 % 
 %   Supported Filetypes:
 %       .bmp
+%       .jpg
+%       .tif
 % 
 %   Supported Reconstruction Types
 %       3_Sub_Image - Basic SIM reconstruction with 3 images {i,j,k}
@@ -34,12 +36,23 @@ function [] = SIM_Pattern_Generator_v3_func( save_path, pixels_wide, ...
 %       Imperfect Bar
 %       Imperfect Sine Wave
 % 
+%   Known Issues
+%       Terms Width and Height were switched when this was originally
+%       written. As such there is a small segment that swaps them.
+% 
 %   2017/08/22 - Started 
 %   2017/08/24 - Finished Perfect Bar Patterns
 %   2017/08/25 - Finished Imperfect Bar Patterns 
 %   2017/08/25 - Finished Imperfect Sine Wave Patterns
 %   2018/07/02 - Converted from a script into a function to work with GUI
 %   2018/08/08 - Updated to enable rotating whole pattern sets
+
+
+
+%% Width vs. Height Misnommer Correction
+temp = pattern_width;
+pattern_width = pattern_height;
+pattern_height = temp;
 
 
 
