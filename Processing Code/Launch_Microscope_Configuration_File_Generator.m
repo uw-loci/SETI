@@ -28,7 +28,7 @@ addpath('./Functions/Microscope Configurations');
 
 
 %% Launch GUI Function
-Microscope_Configuration_File_Generator_GUI; 
+Microscope_Configuration_File_Generator; 
 
 
 %% Return to Starting Point
