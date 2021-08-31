@@ -27,7 +27,7 @@ addpath('./Functions');
 
 
 %% Launch GUI Function
-Axial_Sectioning_Framework_v11_GUI; 
+Axial_Sectioning_Framework_App; 
 
 
 %% Return to Starting Point
