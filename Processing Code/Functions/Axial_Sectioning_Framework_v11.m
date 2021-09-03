@@ -29,6 +29,12 @@ function [] = Axial_Sectioning_Framework_v11(...
 %                   will have theory matched to each rejection profile 
 %                   generated
 % 
+%   Supported Tiling Modes
+%       SETI 1.5 Supports not having exact positions and uses a method of
+%                   cross-correlation and estimated overlap percentage. It
+%                   is sub-optimal in it's reconstruciton.
+%       SETI 2.0 Supports xy position file based tiling 
+% 
 %   Common Actuators Used for Stepping:
 %       SETI - Newport Precision 100 TPI - 254 um per 1 turn
 % 
@@ -63,15 +69,16 @@ warning('off', 'MATLAB:MKDIR:DirectoryExists');
 
 %% Load Microscope Settings
 fprintf('\n\nLoading Microscope Configuration\n');
-[pixel_lpmm_conv, obj_na, obj_mag, f_number, wavelength, ...
-    refractive_index_medium, working_distance] = ...
+[ pixel_lpmm_conversion, obj_na, obj_mag, f_number, ...
+    wavelength, refractive_index_medium, working_distance, ...
+    um_pixel_conversion, SETI_version ] = ...
     Microscope_Configuration_Loader(microscope_configuration);
 
 
 %% Generate Necessary Arch Paths and Extract Information from Folder Name
 fprintf('\nGenerating Paths\n');
-[run_name, file_path, arch_path, cut_depth, meas_scale, num_x, num_y, ...
-    num_z] = arch_path_generator(file_path);
+[ run_name, file_path, arch_path, cut_depth, meas_scale, num_x, num_y, ...
+    num_z ] = arch_path_generator(file_path);
 
 
 %% Calculated Variables
@@ -115,18 +122,45 @@ if ~strcmp(rec_mode, 'Individual Images')
 %% Generate Real lp/mm 
 fprintf('\nCalculating Line Pair/mm\n');
 [ img_sets ] = pixel_widths_2_lpmm_v2( img_sets,  f_number, obj_mag, ...
-    pixel_lpmm_conv );
+    pixel_lpmm_conversion );
 
 
 %% Sort Reconstructed Images 
 fprintf('\nSorting Reconstructed Images\n');
 [ img_sets ] = axial_set_img_sorter( img_sets, num_y, num_z );
 
+% Update the XYZ positions with actual positions if known
+if strcmp(SETI_version, '2.0')
+    [ xyz_map ] = SETI_position_file_loader(position_file_path);
+    for i = 1:numel(img_sets)
+        [ img_sets(i).images_reconstructed ] = ...
+            SETI_spatiotemporal_assignment( ...
+            img_sets(i).images_reconstructed, xyz_map );
+    end
+end
+
 
 %% Tiling/Mosaicing 
 fprintf('\nTiling Reconstructed Images\n');
-[ img_sets ] = axial_img_tiling_v3( img_sets, num_x, num_y, num_z, ...
-    overlap_percent, threshold_percent);
+switch SETI_version
+    case '1.5'
+        [ img_sets ] = axial_img_tiling_v3( img_sets, num_x, num_y, ...
+            num_z, overlap_percent, threshold_percent);
+        
+    case '2.0'
+        for i = 1:numel(img_sets)
+            [ img_sets(i).images_tiled.original ] = ...
+                SETI_position_file_img_tiling( ...
+                img_sets(i).images_reconstructed, xyz_map, ...
+                um_pixel_conversion );
+        end
+        % Clean Reconstructed Memory Usage
+        img_sets = rmfield(img_sets, 'images_reconstructed');
+        
+    otherwise
+        error(['\nUnsupported SETI Version. Please Update the Axial ' ...
+            'Sectioning Framework Tiling Section.\n']);
+end
 
 
 %% Save Tiled Images as Stacks
@@ -137,23 +171,23 @@ axial_img_z_stack_saver(img_sets, file_path, img_save_type, bit_depth);
 % If the Image Sets are Not Rejection Profile Based, Finish After
 % Reconstruction
 if strcmp(rec_mode, 'Rejection Profile')
-%% Generate Rejection Profiles for Each Individual lp/mm Set
-fprintf('\nGenerate Rejetion Profiles\n');
-img_sets = axial_rejection_profile_generator(img_sets, file_path, ...
-    cut_depth, meas_scale, save_intermediaries_flag);
-
-
-%% Generate Rejection Profile Theory Matched to each lp/mm Set
-fprintf('\nGenerate Rejetion Profile Theory for all lp/mm\n');
-[ rejection_theory ] = sim_rejection_theory_v2( img_sets, meas_scale, ...
-    cut_depth, sim_points, refractive_index_medium, obj_na, wavelength, ...
-    file_path, save_intermediaries_flag); 
-
-
-%% Generates the Combined Rejection Profile 
-fprintf('\nGenerate the Combined Rejetion Profiles\n');
-sim_theory_profile_combiner(img_sets, rejection_theory, meas_scale, ...
-    file_path, run_name);
+    %% Generate Rejection Profiles for Each Individual lp/mm Set
+    fprintf('\nGenerate Rejetion Profiles\n');
+    img_sets = axial_rejection_profile_generator(img_sets, file_path, ...
+        cut_depth, meas_scale, save_intermediaries_flag);
+    
+    
+    %% Generate Rejection Profile Theory Matched to each lp/mm Set
+    fprintf('\nGenerate Rejetion Profile Theory for all lp/mm\n');
+    [ rejection_theory ] = sim_rejection_theory_v2( img_sets, ...
+        meas_scale, cut_depth, sim_points, refractive_index_medium, ...
+        obj_na, wavelength, file_path, save_intermediaries_flag);
+    
+    
+    %% Generates the Combined Rejection Profile
+    fprintf('\nGenerate the Combined Rejetion Profiles\n');
+    sim_theory_profile_combiner(img_sets, rejection_theory, meas_scale, ...
+        file_path, run_name);
 end
 end
 
