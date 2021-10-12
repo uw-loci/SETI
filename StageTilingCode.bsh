@@ -27,17 +27,6 @@ travelTimeCalc(double xPos, double yPos, double zPos, Double[] stageSpeeds){
 	}
 }
 
-homing(String[] stages){
-	for (int i = 0; i < stages.length; i++) {
-	    s = stages[i];
-	    s = mmc.getFocusDevice();
-	    print("Homing " + s + "...");
-	    mmc.home(s);
-	    mmc.waitForDevice(s);
-	    print("Finished homing " + s);
-	}
-}
-
 zeroStages(String[] stages){
 	print("I'm in the zero method!");
 	double xPos = mmc.getPosition(stages[0]);
@@ -66,17 +55,17 @@ zeroStages(String[] stages){
  * CurrPos: initialized for creating stage sequences
  */
 	double xStart = 100000;
-	double xStep = 2500;
+	double xStep = 10;
 	double xTileNum = 5;
 	double xCurrPos = xStart;
 			
 	double yStart = 25000;
-	double yStep = 2500;
+	double yStep = 10;
 	double yTileNum = 2;
 	double yCurrPos = yStart;
 
 	double zStart = 24000;
-	double zStep = 2500;
+	double zStep = 10;
 	double zTileNum = 2;
 	double zCurrPos = zStart;
 
@@ -111,7 +100,6 @@ zeroStages(String[] stages){
  	}
  	
 	zeroStages(stages);
- 	//homing(stages);
 
 	mmc.setPosition(stages[0], xStart);
 	mmc.setPosition(stages[1], yStart);
