@@ -24,6 +24,17 @@ travelTimeCalc(int xPos, int yPos, int zPos, Double[] stageSpeeds){
 	}
 }
 
+homing(String[] stages){
+	for (int i = 0; i < stages.length; i++) {
+	    s = stages[i];
+	    s = mmc.getFocusDevice();
+	    print("Homing " + s + "...");
+	    mmc.home(s);
+	    mmc.waitForDevice(s);
+	    print("Finished homing " + s);
+	}
+}
+
 //Create array to store stage labels
  //Array stores stages in x, y, z order
  	stages = new String[]{"LTS300_45186414", "KDC101_27750181", "KDC101_27750156"};
@@ -80,6 +91,8 @@ travelTimeCalc(int xPos, int yPos, int zPos, Double[] stageSpeeds){
  		yCurrPos = yStart;
  		zCurrPos += zStep;
  	}
+
+ 	homing(stages);
 
 	mmc.setPosition(stages[0], xStart);
 	mmc.setPosition(stages[1], yStart);
