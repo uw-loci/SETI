@@ -1,0 +1,95 @@
+//XY reading test
+import java.util.ArrayList;
+import java.util.Scanner;
+import java.io.PrintWriter;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+
+//Reading code
+try {
+			String filename = "C:/Users/User/eclipse-workspace/Position File Project/Testxy.txt/";
+			
+			//initialize object to read file
+	    	FileInputStream readFile = new FileInputStream(filename);
+	    	
+	    	//initialize scanner variables
+			Scanner sc = null;
+			Scanner in = null;
+	        
+			//use scanner to read overall file
+	    	sc = new Scanner(readFile);
+	    	//string to store a line from dictionary file
+	    	String lineStr="";
+	    	String wordStr="";
+	    	
+	    	ArrayList posInfo = new ArrayList();
+	    	
+	    	int numLines = 0;
+	    	
+	    	//loop to iterate through file
+	    	while(sc.hasNextLine()) {
+	    	        	
+	    		//read in contents
+	    		lineStr = sc.nextLine();
+	    		posInfo.add(lineStr);
+	    		
+	    		//records the number of lines in the input file
+	    		numLines++;
+	    	}
+	    	
+	    	//prints out the number of lines. Should be largest index +1
+	    	System.out.println(numLines);
+	    	
+	    /*	Prints out each line that got stored from position file
+	     * 
+	    	for(int i= 0; i < numLines; i++) {
+	    		System.out.println(posInfo.get(i));
+	    	}
+	    */	
+	    	//vectors to store info for stage sequences
+	    	Double[] xPos = new Double[numLines];
+	    	Double[] yPos = new Double[numLines];
+	    	
+	    	//loop initiates an array and scanner to store the strings in an individual line
+	    	for(int i = 0; i<numLines; i++) {
+		    	
+	    		//temp array to store line strings
+	    		ArrayList posLine = new ArrayList();
+	    		//read line string from posInfo
+	    		in = new Scanner(posInfo.get(i));
+	    		
+	    		//Store each word in the line as its own string
+	    		while(in.hasNext()) {
+		    		wordStr = in.next();
+		    		posLine.add(wordStr);
+		    	}
+	    		
+	    		//find the word that corresponds to the coordinates info and store in Double vector
+		    	xPos[i] = Double.parseDouble(posLine.get(3));
+		    	yPos[i] = Double.parseDouble(posLine.get(5));
+		   
+	    	}
+	    	
+	    	//loop prints out the double vector coordinates stored in xPos and yPos
+	    	for(int i= 0; i < numLines; i++) {
+	    		System.out.println(xPos[i] + " " + yPos[i] + ";");
+	    	}
+	    	
+	    	readFile.close();
+	    	sc.close();
+		}
+		catch(FileNotFoundException e) {
+			String filename = "Testxy.txt";
+			System.out.println("Exception: File '" + filename + "' not found.");
+		}
+		catch(NullPointerException e) {
+			System.out.println(e);
+		}
+    	catch(IOException e) {
+        	System.out.println(e);
+        }
+		catch(Exception e) {
+			System.out.println(e);
+		}

@@ -1,0 +1,66 @@
+// The following code is intended to communicate with Thorlabs motorized stages
+/* Author: Zach Gahl
+ * Date: 10/07/21
+ * Last Updated: 10/11/21
+ *  
+ * Stage names for reference:
+ * 	X-Stage = "LTS300_45186414"
+ * 	Y-Stage = "KDC101_27750181"
+ * 	Z-Stage = "KDC101_27750156"
+ * 	 	
+ * 	
+ * Text File Location: "C:/Users/User/eclipse-workspace/Position File Project/Testxy.txt/"
+ * 
+ */
+
+ //Create array to store stage labels
+ //Array stores stages in x, y, z order
+ 	stages = new String[]{"LTS300_45186414", "KDC101_27750181", "KDC101_27750156"};
+
+/*Initialize stage variables:
+ * Variables start with axis of stage
+ * Start: desired starting position in um(?)
+ * Step: desired step size in um
+ * TileNum: the number of images collected along that dimension
+ * CurrPos: initialized for creating stage sequences
+ */
+	int xStart = 15;
+	int xStep = 10;
+	int xTileNum = 5;
+	int xCurrPos = xStart;
+			
+	int yStart = 100;
+	int yStep = 10;
+	int yTileNum = 5;
+	int yCurrPos = yStart;
+
+//Initializes the variable that determines the location of the generated position data in the posList arrays
+	int currLine = 0;
+//Total number of lines/how big the posList arrays should be
+	int numLines = xTileNum * yTileNum;
+
+//Initialization of double arrays that are used to store the stage position info for tiling
+ 	Double[] xPosList = new Double[numLines];
+ 	Double[] yPosList = new Double[numLines];
+
+//Loops designed to populate the posList arrays
+ 	for(int i = 0; i < yTileNum; i++){
+ 		for(int j = 0; j < xTileNum; j++) {
+ 			
+ 			xPosList[currLine] = Double.valueOf(xCurrPos);
+ 			yPosList[currLine] = Double.valueOf(yCurrPos);
+
+			mm.logs().logMessage(xCurrPos + " " + yCurrPos);
+ 			xCurrPos = xCurrPos + xStep;
+ 			currLine++;
+ 		}
+ 		xCurrPos = xStart;
+ 		yCurrPos = yCurrPos + yStep;
+ 	}
+
+//Theoretically should step throught the stage sequences and move through the stages
+//might have to load the stages first
+ 	for(k = 0; k < numLines; k++){
+ 		mmc.setPosition(stages[1],yPosList[i]);
+ 		mmc.setPosition(stages[0],xPosList[i]);
+ 	}

@@ -1,0 +1,65 @@
+//Test for xy coding
+import java.util.ArrayList;
+import java.util.Scanner;
+import java.io.PrintWriter;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+
+//Variables for creating the position lists
+			int xStart = 15;
+			int xStep = 10;
+			int xTileNum = 5;
+			int xPos = xStart;
+			
+			int yStart = -100;
+			int yStep = 10;
+			int yTileNum = 5;
+			int yPos = yStart;
+			
+			ArrayList Info = new ArrayList();
+			
+			//System.out.println("Starting pos: " + xStart + ", Step size: " + xStep + ", Tiling Dimension: " + xTileNum);
+
+			//counter keeps track of the line that the information is entered (follows first postion being "0" convention)
+			int counter = 0;
+			for(int i = 0; i < yTileNum; i++) {
+				
+				for(int j = 0; j < xTileNum; j++) {
+					Info.add("<StageLocation index='" + counter +"' x= "+ xPos + " y= " + yPos +" />\n");
+					xPos = xPos + xStep;
+					counter++;
+				}
+				xPos = xStart;
+				yPos = yPos + yStep;
+			}
+			
+			//Write to file
+			//Need the try to catch any exceptions that get thrown that prevent the code from running
+			try {
+				String filename = "C:/Users/User/eclipse-workspace/Position File Project/Testxy.txt/";
+				FileOutputStream output = new FileOutputStream(filename);
+				byte[] storeByte = new byte[1];
+				
+				//Loads each line from Info and writes it to a text file
+				for(int i = 0; i < Info.size(); i++) {
+					String line = Info.get(i);
+					storeByte = line.getBytes();
+					output.write(storeByte);
+				}
+				output.close();
+			}
+			catch(FileNotFoundException e) {
+				String filename = "Testxy.txt";
+				System.out.println("Exception: File '" + filename + "' not found.");
+			}
+			catch(NullPointerException e) {
+				System.out.println(e);
+			}
+	    	catch(IOException e) {
+	        	System.out.println(e);
+	        }
+			catch(Exception e) {
+				System.out.println(e);
+			}
