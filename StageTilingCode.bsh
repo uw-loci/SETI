@@ -1,4 +1,7 @@
-travelTimeCalc(int xPos, int yPos, int zPos, Double[] stageSpeeds){
+
+//methods
+travelTimeCalc(double xPos, double yPos, double zPos, Double[] stageSpeeds){
+	print("I'm in the travelTimeCalc method!");
 	double xTime = xPos/stageSpeeds[0];
 	print(xTime);
 	double yTime = yPos/stageSpeeds[1];
@@ -35,6 +38,21 @@ homing(String[] stages){
 	}
 }
 
+zeroStages(String[] stages){
+	print("I'm in the zero method!");
+	double xPos = mmc.getPosition(stages[0]);
+	double yPos = mmc.getPosition(stages[1]);
+	double zPos = mmc.getPosition(stages[2]);
+	
+	mmc.setPosition(stages[0], 0);
+ 	mmc.setPosition(stages[1], 0);
+ 	mmc.setPosition(stages[2], 0);
+
+ 	travelTimeCalc(xPos,yPos,zPos,speeds);
+}
+
+//------END METHODS------------------------------------
+
 //Create array to store stage labels
  //Array stores stages in x, y, z order
  	stages = new String[]{"LTS300_45186414", "KDC101_27750181", "KDC101_27750156"};
@@ -47,20 +65,20 @@ homing(String[] stages){
  * TileNum: the number of images collected along that dimension
  * CurrPos: initialized for creating stage sequences
  */
-	int xStart = 100000;
-	int xStep = 10000;
-	int xTileNum = 5;
-	int xCurrPos = xStart;
+	double xStart = 100000;
+	double xStep = 2500;
+	double xTileNum = 5;
+	double xCurrPos = xStart;
 			
-	int yStart = 25000;
-	int yStep = 1000;
-	int yTileNum = 5;
-	int yCurrPos = yStart;
+	double yStart = 25000;
+	double yStep = 2500;
+	double yTileNum = 2;
+	double yCurrPos = yStart;
 
-	int zStart = 24000;
-	int zStep = 1000;
-	int zTileNum = 2;
-	int zCurrPos = zStart;
+	double zStart = 24000;
+	double zStep = 2500;
+	double zTileNum = 2;
+	double zCurrPos = zStart;
 
 //Initializes the variable that determines the location of the generated position data in the posList arrays
 	int currLine = 0;
@@ -91,31 +109,29 @@ homing(String[] stages){
  		yCurrPos = yStart;
  		zCurrPos += zStep;
  	}
-
- 	homing(stages);
+ 	
+	zeroStages(stages);
+ 	//homing(stages);
 
 	mmc.setPosition(stages[0], xStart);
 	mmc.setPosition(stages[1], yStart);
 	mmc.setPosition(stages[2], zStart);
 
 	travelTimeCalc(xStart,yStart,zStart,speeds);
-	//mmc.waitForSystem();
-	//mmc.waitForDeviceType(DeviceType StageDevice);
-	//mmc.waitForDevice(stages[1]);
 
 //Theoretically should step throught the stage sequences and move through the stages
 //might have to load the stages first
  	for(k = 0; k < numLines; k++){
  		mmc.setPosition(stages[2],zPosList[k]);
- 		mmc.setPosition(stages[1],yPosList[k]);
- 		mmc.setPosition(stages[0],xPosList[k]);
+ 		mmc.waitForDevice(stages[2]);
  		
- 		//mmc.waitForDeviceType(StageDevice);
+ 		mmc.setPosition(stages[1],yPosList[k]);
+ 		mmc.waitForDevice(stages[1]);
+ 		
+ 		mmc.setPosition(stages[0],xPosList[k]);
  		mmc.waitForDevice(stages[0]);
-		mmc.waitForDevice(stages[1]);
-		mmc.waitForDevice(stages[2]);
+		
  	}
 
- 	mmc.setPosition(stages[0], 0);
- 	mmc.setPosition(stages[1], 0);
- 	mmc.setPosition(stages[2], 0);
+	zeroStages(stages);
+ 	
