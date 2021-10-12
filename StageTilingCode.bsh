@@ -1,22 +1,33 @@
-// The following code is intended to communicate with Thorlabs motorized stages
-/* Author: Zach Gahl
- * Date: 10/07/21
- * Last Updated: 10/12/21
- *  
- * Stage names for reference:
- * 	X-Stage = "LTS300_45186414"
- * 	Y-Stage = "KDC101_27750181"
- * 	Z-Stage = "KDC101_27750156"
- * 	 	
- * 	
- * Text File Location: "C:/Users/User/eclipse-workspace/Position File Project/Testxy.txt/"
- * 
- */
+travelTimeCalc(int xPos, int yPos, int zPos, Double[] stageSpeeds){
+	double xTime = xPos/stageSpeeds[0];
+	print(xTime);
+	double yTime = yPos/stageSpeeds[1];
+	print(yTime);
+	double zTime = zPos/stageSpeeds[2];
+	print(zTime);
 
- //Create array to store stage labels
+	if(xTime > yTime && xTime > zTime){
+		print(xTime);
+		mmc.sleep(xTime);
+	}
+	else if(yTime > xTime && yTime > zTime){
+		print(yTime);
+		mmc.sleep(yTime);
+	}
+	else if(zTime > xTime && zTime > yTime){
+		print(zTime);
+		mmc.sleep(zTime);
+	}
+	else{
+		print(10000);
+		mmc.sleep(10000);
+	}
+}
+
+//Create array to store stage labels
  //Array stores stages in x, y, z order
  	stages = new String[]{"LTS300_45186414", "KDC101_27750181", "KDC101_27750156"};
- 	speeds = new Double[]{2.4,20.0};
+ 	speeds = new Double[]{20.0,2.4,2.4};
 
 /*Initialize stage variables:
  * Variables start with axis of stage
@@ -24,7 +35,6 @@
  * Step: desired step size in um
  * TileNum: the number of images collected along that dimension
  * CurrPos: initialized for creating stage sequences
- * Speed: The max speed set for the specified stage in mm/sec
  */
 	int xStart = 100000;
 	int xStep = 10000;
@@ -36,36 +46,46 @@
 	int yTileNum = 5;
 	int yCurrPos = yStart;
 
+	int zStart = 24000;
+	int zStep = 1000;
+	int zTileNum = 2;
+	int zCurrPos = zStart;
+
 //Initializes the variable that determines the location of the generated position data in the posList arrays
 	int currLine = 0;
 //Total number of lines/how big the posList arrays should be
-	int numLines = xTileNum * yTileNum;
-
-	double travelTime = 0.0;
+	int numLines = xTileNum * yTileNum * zTileNum;
 
 //Initialization of double arrays that are used to store the stage position info for tiling
  	Double[] xPosList = new Double[numLines];
  	Double[] yPosList = new Double[numLines];
+ 	Double[] zPosList = new Double[numLines];
 
 //Loops designed to populate the posList arrays
- 	for(int i = 0; i < yTileNum; i++){
- 		for(int j = 0; j < xTileNum; j++) {
- 			
- 			xPosList[currLine] = Double.valueOf(xCurrPos);
- 			yPosList[currLine] = Double.valueOf(yCurrPos);
-
-			print(xCurrPos + " " + yCurrPos + "\n");
- 			xCurrPos = xCurrPos + xStep;
- 			currLine++;
+ 	for(int i = 0; i < zTileNum; i++){
+ 		for(int j = 0; j < yTileNum; j++) {
+ 			for(int k = 0; k < xTileNum; k++) {
+	 			xPosList[currLine] = Double.valueOf(xCurrPos);
+	 			yPosList[currLine] = Double.valueOf(yCurrPos);
+	 			zPosList[currLine] = Double.valueOf(zCurrPos);
+	
+				//print(xCurrPos + " " + yCurrPos + "\n");
+	 			xCurrPos = xCurrPos + xStep;
+	 			currLine++;
+ 			}
+	 		xCurrPos = xStart;
+	 		yCurrPos = yCurrPos + yStep;
  		}
  		xCurrPos = xStart;
- 		yCurrPos = yCurrPos + yStep;
+ 		yCurrPos = yStart;
+ 		zCurrPos += zStep;
  	}
 
 	mmc.setPosition(stages[0], xStart);
 	mmc.setPosition(stages[1], yStart);
+	mmc.setPosition(stages[2], zStart);
 
-	mmc.sleep(10000);
+	travelTimeCalc(xStart,yStart,zStart,speeds);
 	//mmc.waitForSystem();
 	//mmc.waitForDeviceType(DeviceType StageDevice);
 	//mmc.waitForDevice(stages[1]);
@@ -73,12 +93,16 @@
 //Theoretically should step throught the stage sequences and move through the stages
 //might have to load the stages first
  	for(k = 0; k < numLines; k++){
+ 		mmc.setPosition(stages[2],zPosList[k]);
  		mmc.setPosition(stages[1],yPosList[k]);
  		mmc.setPosition(stages[0],xPosList[k]);
+ 		
  		//mmc.waitForDeviceType(StageDevice);
  		mmc.waitForDevice(stages[0]);
 		mmc.waitForDevice(stages[1]);
+		mmc.waitForDevice(stages[2]);
  	}
 
- 	mmc.setPosition(stages[0], xStart);
- 	mmc.setPosition(stages[1], yStart);
+ 	mmc.setPosition(stages[0], 0);
+ 	mmc.setPosition(stages[1], 0);
+ 	mmc.setPosition(stages[2], 0);

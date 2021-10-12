@@ -1,0 +1,43 @@
+travelTimeCalc(int xPos, int yPos, Double[] stageSpeeds){
+	double xTime = xPos/stageSpeeds[0];
+	print(xTime);
+	double yTime = yPos/stageSpeeds[1];
+	print(yTime);
+
+	if(xTime > yTime){
+		print(xTime);
+		mmc.sleep(xTime);
+	}
+	else if(yTime > xTime){
+		print(yTime);
+		mmc.sleep(yTime);
+	}
+	else{
+		print(10000);
+		mmc.sleep(10000);
+	}
+}
+
+
+
+ 	speeds = new Double[]{20.0,2.4,2.4};
+
+/*Initialize stage variables:
+ * Variables start with axis of stage
+ * Start: desired starting position in um
+ * Step: desired step size in um
+ * TileNum: the number of images collected along that dimension
+ * CurrPos: initialized for creating stage sequences
+ * Speed: The max speed set for the specified stage in mm/sec
+ */
+	int xStart = 100000;
+	int xStep = 10000;
+	int xTileNum = 5;
+	int xCurrPos = xStart;
+			
+	int yStart = 25000;
+	int yStep = 1000;
+	int yTileNum = 5;
+	int yCurrPos = yStart;
+
+travelTimeCalc(xStart, yStart, speeds);
