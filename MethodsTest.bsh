@@ -30,14 +30,14 @@ travelTimeCalc(int xPos, int yPos, Double[] stageSpeeds){
  * CurrPos: initialized for creating stage sequences
  * Speed: The max speed set for the specified stage in mm/sec
  */
-	int xStart = 100000;
-	int xStep = 10000;
-	int xTileNum = 5;
-	int xCurrPos = xStart;
+	double xStart = 100000;
+	double xStep = 10000;
+	double xTileNum = 5;
+	double xCurrPos = xStart;
 			
-	int yStart = 25000;
-	int yStep = 1000;
-	int yTileNum = 5;
-	int yCurrPos = yStart;
+	double yStart = 25000;
+	double yStep = 1000;
+	double yTileNum = 5;
+	double yCurrPos = yStart;
 
 travelTimeCalc(xStart, yStart, speeds);
