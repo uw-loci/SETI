@@ -28,12 +28,12 @@
  */
 	int xStart = 100000;
 	int xStep = 10000;
-	int xTileNum = 5;
+	int xTileNum = 2;
 	int xCurrPos = xStart;
 			
 	int yStart = 25000;
 	int yStep = 1000;
-	int yTileNum = 5;
+	int yTileNum = 2;
 	int yCurrPos = yStart;
 
 //Initializes the variable that determines the location of the generated position data in the posList arrays
