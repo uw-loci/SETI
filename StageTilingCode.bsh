@@ -1,13 +1,13 @@
-
+import java.lang.Math;
 //-------------------------START METHODS-------------------------
 travelTimeCalc(double xPos, double yPos, double zPos, Double[] stageSpeeds){
 	print("I'm in the travelTimeCalc method!");
 	
-	double xTime = abs(xPos/stageSpeeds[0]);
+	double xTime = Math.abs(xPos/stageSpeeds[0]);
 	print(xTime);
-	double yTime = abs(yPos/stageSpeeds[1]);
+	double yTime = Math.abs(yPos/stageSpeeds[1]);
 	print(yTime);
-	double zTime = abs(zPos/stageSpeeds[2]);
+	double zTime = Math.abs(zPos/stageSpeeds[2]);
 	print(zTime);
 
 	if(xTime > yTime && xTime > zTime){
@@ -26,13 +26,14 @@ travelTimeCalc(double xPos, double yPos, double zPos, Double[] stageSpeeds){
 		print(10000);
 		mmc.sleep(10000);
 	}
+	mmc.sleep(1000);
 }
 
-activateMill{
+activateMill(){
 	print("I'm in the activateMill method!");
 }
 
-millSample(Double[] stages){
+millSample(String[] stages){
 	print("I'm in the millSample method!");
 
 	//Default Positions for MILLING------UPDATE AS NEEDED FOR SYSTEM***********
@@ -54,13 +55,13 @@ millSample(Double[] stages){
 	mmc.waitForDevice(stages[0]);
 }
 
-returnForImage(Double[] stages, Double[] speeds){
+returnForImage(double xPos, double yPos, double zPos, String[] stages, Double[] speeds){
 	print("I'm in the returnForImage method!");
 	
 	//Default Positions for IMAGING------UPDATE AS NEEDED FOR SYSTEM***********
-	double xImagePos = 100000;
-	double yImagePos = 25000;
-	double zImagePos = 25000;
+	double xImagePos = xPos;
+	double yImagePos = yPos;
+	double zImagePos = zPos;
 
 	
 	double xDist = mmc.getPosition(stages[0]) - xImagePos;
@@ -68,10 +69,14 @@ returnForImage(Double[] stages, Double[] speeds){
 	double zDist = mmc.getPosition(stages[2]) - zImagePos;
 
 	mmc.setPosition(stages[0], xImagePos);
-	travelTimeCalc(xDist,YDist,zDist,speeds);
+	travelTimeCalc(xDist,yDist,zDist,speeds);
+	
+	mmc.setPosition(stages[1], yImagePos);
+	mmc.setPosition(stages[2], zImagePos);
+	travelTimeCalc(xDist,yDist,zDist,speeds);
 }
 
-startMilling(double xPos, double yPos, double zPos, Double[] stages, Double[] speeds){
+startMilling(double xPos, double yPos, double zPos, String[] stages, Double[] speeds){
 	print("I'm in the startMilling method!");
 	
 	double xStore = xPos;
@@ -79,22 +84,25 @@ startMilling(double xPos, double yPos, double zPos, Double[] stages, Double[] sp
 	double zStore = zPos;
 
 	//Default Positions for PREPARING FOR MILLING------UPDATE AS NEEDED FOR SYSTEM***********
-	double zMillPos = 0;
-	double millMidPos = 25000;
+	double zMillPos = 35000;
+	double millMidPos = 12000;
 	double brushEdge = 200000;
 
 	mmc.setPosition(stages[2], 0);
 	//Ensures that the sample has enough time to move to safe position
-	travelTimeCalc(brushEdge-xStore, yStore-millMidPos, zStore - zMillPos);
+	travelTimeCalc(brushEdge-xStore, yStore-millMidPos, zStore - zMillPos, speeds);
 	
 	mmc.setPosition(stages[1], millMidPos);
 	mmc.setPosition(stages[0], brushEdge);
 
-	travelTimeCalc(brushEdge-xStore, yStore-millMidPos, zStore - zMillPos);
+	travelTimeCalc(brushEdge-xStore, yStore-millMidPos, zStore - zMillPos, speeds);
+
+	mmc.setPosition(stages[2], zMillPos);
+	travelTimeCalc(brushEdge-xStore, yStore-millMidPos, zMillPos, speeds);
 
 	activateMill();
 	millSample(stages);
-	returnForImage(stages, speeds);
+	returnForImage(xStore, yStore, zStore, stages, speeds);
 	
 }
 
@@ -128,17 +136,17 @@ zeroStages(String[] stages){
  * CurrPos: initialized for creating stage sequences
  */
 	double xStart = 100000;
-	double xStep = 10;
+	double xStep = 5000;
 	double xTileNum = 5;
 	double xCurrPos = xStart;
 			
 	double yStart = 25000;
-	double yStep = 10;
+	double yStep = 1000;
 	double yTileNum = 2;
 	double yCurrPos = yStart;
 
 	double zStart = 24000;
-	double zStep = 10;
+	double zStep = 1000;
 	double zTileNum = 2;
 	double zCurrPos = zStart;
 
@@ -183,16 +191,24 @@ zeroStages(String[] stages){
 //Theoretically should step throught the stage sequences and move through the stages
 //might have to load the stages first
  	for(k = 0; k < numLines; k++){
+ 		
  		mmc.setPosition(stages[2],zPosList[k]);
  		mmc.waitForDevice(stages[2]);
- 		
+
+		if(k != 0){
+	 		if(zPosList[k]!= zPosList[k-1]){
+				startMilling(xPosList[k],yPosList[k],zPosList[k],stages,speeds);
+			}
+		}
  		mmc.setPosition(stages[1],yPosList[k]);
- 		mmc.waitForDevice(stages[1]);
+ 		mmc.waitForDevice(stages[1]);		
  		
  		mmc.setPosition(stages[0],xPosList[k]);
  		mmc.waitForDevice(stages[0]);
 		
  	}
+
+	//startMilling(mmc.getPosition(stages[0]),mmc.getPosition(stages[1]),mmc.getPosition(stages[2]),stages,speeds);
 
 	zeroStages(stages);
  	
