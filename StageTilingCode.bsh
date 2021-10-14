@@ -82,9 +82,10 @@ startMilling(double xPos, double yPos, double zPos, String[] stages, Double[] sp
 	double xStore = xPos;
 	double yStore = yPos;
 	double zStore = zPos;
+	double millDiff = 0.0;
 
 	//Default Positions for PREPARING FOR MILLING------UPDATE AS NEEDED FOR SYSTEM***********
-	double zMillPos = 35000;
+	double zMillPos = zStore + millDiff;
 	double millMidPos = 12000;
 	double brushEdge = 200000;
 
@@ -125,7 +126,7 @@ zeroStages(String[] stages){
 //Create array to store stage labels
 //Array stores stages in x, y, z order
  	stages = new String[]{"LTS300_45186414", "KDC101_27750181", "KDC101_27750156"};
- 	speeds = new Double[]{20.0,2.4,2.4};
+ 	speeds = new Double[]{10.0,2.4,2.4};
 
 /*INITIALIZE STAGE VARIABLES:
  * 
@@ -145,9 +146,9 @@ zeroStages(String[] stages){
 	double yTileNum = 2;
 	double yCurrPos = yStart;
 
-	double zStart = 24000;
+	double zStart = 35000;
 	double zStep = 1000;
-	double zTileNum = 2;
+	double zTileNum = 4;
 	double zCurrPos = zStart;
 
 //Initializes the variable that determines the location of the generated position data in the posList arrays
