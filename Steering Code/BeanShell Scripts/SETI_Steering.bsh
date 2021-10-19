@@ -1,0 +1,262 @@
+// SETI 1.5 Steering Script 
+// Modified from Yiqun Ma's Tiling-all-in-one-folder.bsh
+// By Niklas Gahm
+// 2021/10/13
+
+// Notes for Upgrading to SETI 2.0
+// - at various points there's specific comments about things that should be updated for 2.0 marked with ------------------ at the end
+// - any reference to arduino needs to be removed
+// - wait times may be unnecessary since uManager theoretically knows when some step is completed
+
+// Imports
+import java.io.File;
+import java.awt.image;
+import javax.imageio.ImageIO;
+
+
+//------------------ INPUTS ----------------------------------------
+inputs(){
+	int depthOfSectioning = 10;// total depth of physical sectioning in um (10um per cut).
+								//eg: 200 for 200um and 20 cuts
+	int dep = 1; // including the top surface, how many optical slices (10 um each)?
+	int numPatterns = 1; // number of different patterns used.  
+	int tilingDim = 3;
+	
+	// set camera exposure in ms				
+	double exposure = 1; 
+	int objective = 20;
+	int xTiles = 3;		// NOTE: matched G Code only supports 3x3 at the moment 
+	int yTiles = 3;
+	int zStepSize = 10; // in um 
+
+	String acquName = "2018-11-20-Tissue-14Bit-20MHz-Tiling-Highlighter-2";  //name of folder generated
+	
+	
+	// NOTE! All File paths must use / instead of \
+	
+	String rootDir = "C:/Users/admin2/Box Sync/SETI/";
+	//rootDir = "C:/Users/admin2/Desktop/Acquisitions"; //address of mother folder
+	
+	String dlpPattern = "C:/Users/admin2/Documents/GitHub/SETI/Steering Code/Patterns/1920x1080/3 Sub Image Perfect Bar 21 Pixels 0 Aperture 0deg Rotation";	// Folder Containg Patterns for DLP
+
+	show = true;	//to display every image taken as if you clicked snap
+	save = true;	//to save the images
+
+	return this;
+}
+//--------------- END INPUT ----------------------------------------
+
+
+
+
+
+// Methods
+loadPatterns(string dlpPattern){
+	// Patterns Path
+	File fpath = new File(dlpPattern);
+	File[] dirList = fpath.listFiles();
+	BufferedImage [] allPatterns = new BufferedImage[dirList.length];
+	numSubImgs = dirList.length;
+	
+	// Patterns
+	for(int i = 0; i < dirList.length; i++){
+		try{
+			allPatterns[i] = ImageIO.read(dirList[i]);
+		}catch(IOException e){}
+	}
+	
+	// Brightfield Path
+	bfPath = fpath.toString();
+	bfPathInd = bfPath.lastIndexOf(File.separator);
+	bfPath = bfPath.substring(0, bfPathInd);
+	File bfPath = new File(bfPath);
+	File[] bfDirList = bfPath.listFiles();
+	BufferedImage brightField = ImageIO.read(bfDirList[0]);
+	
+	return this;
+}
+
+switchPattern(string slmLabel, int[] pattern){
+	//set shutter open
+	mmc.setShutterOpen(true);
+	mmc.setSLMImage(slmLabel, pattern)
+	mmc.displaySLMImage(slmLabel);
+	//make sure that dlp is on
+	mmc.sleep(50);               
+}
+
+// Replace the next three methods with milling control ------------------------------------------------
+activateMill(){
+	mmc.setState("Arduino-Switch", 32);  //pin 13 HIGH, triggers milling cycle (pin 15 on mill)
+	mmc.setShutterOpen(true);
+}
+
+waitForMillingStart(){
+	//wait for signal from mill to signal the beginning of a cycle (M140)
+	while(Double.valueOf(mmc.getProperty("Arduino-Input", "AnalogInput5")) > 500){
+			gui.message("ACTIVATING MILL");
+			mmc.sleep(50);
+			//gui.message(mmc.getProperty("Arduino-Input", "AnalogInput3"));
+		}
+}
+
+shutterOff(){
+	//once milling cycle has started, shutter off
+	mmc.setShutterOpen(false);
+	mmc.setState("Arduino-Switch", 0);	//all pins LOW
+}
+// Replace the above three methods with milling control -----------------------------------------------
+
+convertBufferedToByte(BufferedImage img){
+	ByteArrayOutputStream imgB = new ByteArrayOutputStream();
+	ImageIO.write(img, "jpg", imgB);
+	byte[] imgOut = imgB.toByteArray();
+	return imgOut;
+}
+
+snapBF(int currCut, int currX, int currY, int currDep, string slmLabel, BufferedImage brightField){
+		mmc.setExposure(exposure/2);
+		switchPattern(slmLabel, convertBufferedToByte(brightField));
+		//calculate index for current image
+		ind = tilingDim  * tilingDim * currCut + currY * tilingDim + currX;
+		//snap and save an image
+		gui.snapAndAddImage(acquName, ind, 0, 0, currDep);
+		gui.message("BF: Depth " + currDep + " Image " + (currCut+1) + " snapped");
+		
+		//set shutter closed
+		mmc.setShutterOpen(false);
+		mmc.waitForSystem();
+}
+
+snapCurrPattern(int currCut, int currX, int currY, int currPtrn, int numSubImgs, string slmLabel, BufferedImage[] pattern){ 
+	//physical slices, curr optical slices, #on each slice, total ims per slice
+		mmc.setExposure(exposure);
+		for (int i = 0; i < numSubImgs; i++){
+			switchPattern(slmLabel, convertBufferedToByte(pattern[i]));
+			//calculate the index of the image
+			ind = tilingDim * tilingDim * numSubImgs * currCut + currY * tilingDim * numSubImgs + currX * numSubImgs + i;
+//			ind = tilingDim * tilingDim * 3 * currCut + currY * tilingDim * 3 + currX * 3 + i;
+			//snap and save an image
+			gui.snapAndAddImage(acquName, ind, currX, currY, currPtrn+dep);
+			gui.message("Slice: " + (currCut) + " Y: " + (currY) + " X: " + (currX) + " image: " + (i) + " snapped");
+			
+			//set shutter closed
+			mmc.setShutterOpen(false);
+			mmc.waitForSystem();
+	}
+}
+
+waitForImagingReady(){
+	mmc.sleep(500);
+	while (Double.valueOf(
+		mmc.getProperty("Arduino-Input", "AnalogInput3")
+	) > 500){
+		gui.message("Waiting for imaging position");
+		mmc.sleep(10);
+		}
+}
+
+imagingTrigger(){
+	activateMill();
+	waitForImagingReady();
+	shutterOff();
+}
+
+millingTrigger(){
+	activateMill();
+	waitForMillingStart();
+	shutterOff();
+}
+
+
+
+
+// Main
+gui.closeAllAcquisitions();
+mmc.setShutterOpen(false);
+mmc.setState("Arduino-Switch", 0);	//all pins LOW
+gui.clearMessageWindow();
+
+// Load in Inputs
+inputsObject = inputs();
+
+depthOfSectioning = inputsObject.depthOfSectioning;
+dep = inputsObject.dep;
+numPatterns = inputsObject.numPatterns;
+tilingDim = inputsObject.tilingDim;
+exposure = inputsObject.exposure; 
+inputsObject.objective = inputsObject.objective;
+xTiles = inputsObject.xTiles;
+yTiles = inputsObject.yTiles;
+zStepSize = inputsObject.zStepSize;
+rootDir = inputsObject.rootDir;
+dlpPattern = inputsObject.dlpPattern;
+show = inputsObject.show;
+save = inputsObject.save;
+
+// Setting up Variables 
+// naming convention can be changed for 2.0 since XYZ information in position file -------------------------------
+acquName = inputsObject.acquName + " " + objective + "x_" + exposure+"ms_" + 
+	xTiles + "x_" + yTiles + "y_" + ceil(depthOfSectioning/zStepSize) + "z_" + 
+	zStepSize + "um_cuts";
+
+nrFrames = 0;  
+nrChannels = 3;
+nrSlices = 3;
+nrPositions = (numPatterns+1)*dep; //(numPatterns + bright field) * depths
+
+cuts = ceil(depthOfSectioning/zStepSize);
+
+slmLabel = mmc.getSLMDevibe();
+patternObject = loadPatterns(dlpPattern);
+numSubImgs = patternObject.numSubImgs;
+BufferedImage brightField = patternObject.brightField;
+BufferedImage[] allPatterns = patternObject.allPatterns;
+
+// Process begins
+gui.openAcquisition(acquName, rootDir, nrFrames, nrChannels, nrSlices, nrPositions, show, save);
+
+// For each cut
+for(int i = 0; i < cuts; i++){
+	gui.message("slice: " + i);
+	// initiate arduino pin after machine cycle. 0 for LOW at all pins, 1 for HIGH at pin 8
+	mmc.setState("Arduino-Switch", 0);
+	mmc.setShutterOpen(false); // all 
+	//for each depth
+	for (int j = 0; j < dep; j++){
+		for (int y = 0; y < tilingDim; y++){
+			for (int x = 0; x < tilingDim; x++){
+				imagingTrigger();
+				snapBF(i, x, y, j, slmLabel, brightField);
+				//for each pattern				
+				for (int k = 0; k < numPatterns; k++){
+					snapCurrPattern(i, x, y, k, numSubImgs, slmLabel, allPatterns);
+				} 
+			}
+		}
+	}
+
+
+	// after images taken, trigger the milling cycle
+	millingTrigger();
+
+	// wait for the milling to finish. Check on the status every 500ms
+	while (Double.valueOf(
+			mmc.getProperty("Arduino-Input", "AnalogInput5")
+		) < 500) {
+		mmc.sleep(500);
+	}
+	// When finished,
+	gui.message("Milling Done");
+	mmc.sleep(2000);
+}
+
+//after all cuts done, close aquisition
+gui.closeAllAcquisitions();
+mmc.setShutterOpen(false);
+mmc.setState("Arduino-Switch", 0);	//all pins LOW
+gui.message("ACQUISITION Done");
+
+
+
+
