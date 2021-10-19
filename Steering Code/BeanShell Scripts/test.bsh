@@ -31,7 +31,7 @@ bfPath = bfPath.substring(0, bfPathInd);
 gui.message(bfPath);
 File bfPath = new File(bfPath);
 File[] bfDirList = bfPath.listFiles();
-gui.message("Number of Bright Field Files" + (bfDirList.length()));
+gui.message("Number of Bright Field Files " + (bfDirList.length));
 
 
 

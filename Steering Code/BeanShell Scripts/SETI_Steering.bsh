@@ -32,7 +32,7 @@ inputs(){
 	String acquName = "2018-11-20-Tissue-14Bit-20MHz-Tiling-Highlighter-2";  //name of folder generated
 	
 	
-	// NOTE! All File paths must use / instead of \
+	// NOTE! All File paths must use / or \\ instead of \ on Windows
 	
 	String rootDir = "C:/Users/admin2/Box Sync/SETI/";
 	//rootDir = "C:/Users/admin2/Desktop/Acquisitions"; //address of mother folder
@@ -51,7 +51,7 @@ inputs(){
 
 
 // Methods
-loadPatterns(string dlpPattern){
+loadPatterns(String dlpPattern){
 	// Patterns Path
 	File fpath = new File(dlpPattern);
 	File[] dirList = fpath.listFiles();
@@ -76,10 +76,10 @@ loadPatterns(string dlpPattern){
 	return this;
 }
 
-switchPattern(string slmLabel, int[] pattern){
+switchPattern(String slmLabel, byte[] pattern){
 	//set shutter open
 	mmc.setShutterOpen(true);
-	mmc.setSLMImage(slmLabel, pattern)
+	mmc.setSLMImage(slmLabel, pattern);
 	mmc.displaySLMImage(slmLabel);
 	//make sure that dlp is on
 	mmc.sleep(50);               
@@ -114,7 +114,7 @@ convertBufferedToByte(BufferedImage img){
 	return imgOut;
 }
 
-snapBF(int currCut, int currX, int currY, int currDep, string slmLabel, BufferedImage brightField){
+snapBF(int currCut, int currX, int currY, int currDep, String slmLabel, BufferedImage brightField){
 		mmc.setExposure(exposure/2);
 		switchPattern(slmLabel, convertBufferedToByte(brightField));
 		//calculate index for current image
@@ -128,7 +128,7 @@ snapBF(int currCut, int currX, int currY, int currDep, string slmLabel, Buffered
 		mmc.waitForSystem();
 }
 
-snapCurrPattern(int currCut, int currX, int currY, int currPtrn, int numSubImgs, string slmLabel, BufferedImage[] pattern){ 
+snapCurrPattern(int currCut, int currX, int currY, int currPtrn, int numSubImgs, String slmLabel, BufferedImage[] pattern){ 
 	//physical slices, curr optical slices, #on each slice, total ims per slice
 		mmc.setExposure(exposure);
 		for (int i = 0; i < numSubImgs; i++){
@@ -207,7 +207,7 @@ nrPositions = (numPatterns+1)*dep; //(numPatterns + bright field) * depths
 
 cuts = ceil(depthOfSectioning/zStepSize);
 
-slmLabel = mmc.getSLMDevibe();
+slmLabel = mmc.getSLMDevice();
 patternObject = loadPatterns(dlpPattern);
 numSubImgs = patternObject.numSubImgs;
 BufferedImage brightField = patternObject.brightField;
