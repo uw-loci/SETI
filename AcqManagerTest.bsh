@@ -1,0 +1,14 @@
+/*
+ * Acquition Manager testing for upgrading SETI Steering Code from uM version 1.4
+ * Replacing the openAcquisition method?
+ */
+
+builder = mm.acquisitions().sequenceSettingsBuilder();
+builder.comment("THIS IS A TEST");
+builder.save(true);
+
+settings = builder.build();
+
+
+mm.acquisitions().saveSequenceSettings(settings, "C:/Users/User/Documents/GitHub/SETI/Acquisition Settings/acqTest.txt");
+ 
