@@ -11,4 +11,3 @@ settings = builder.build();
 
 
 mm.acquisitions().saveSequenceSettings(settings, "C:/Users/User/Documents/GitHub/SETI/Acquisition Settings/acqTest.txt");
- 
