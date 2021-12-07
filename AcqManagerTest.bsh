@@ -11,3 +11,10 @@ settings = builder.build();
 
 
 mm.acquisitions().saveSequenceSettings(settings, "C:/Users/User/Documents/GitHub/SETI/Acquisition Settings/acqTest.txt");
+
+directory = "C:/Users/User/Documents/GitHub/SETI/Data Settings";
+
+someDatastore = mm.data().createMultipageTIFFDatastore(directory, false, false);
+
+tempPatternImage = mm.live().snap(true);
+someDatastore.putImage(tempPatternImage);
