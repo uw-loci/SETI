@@ -120,7 +120,9 @@ snapBF(int currCut, int currX, int currY, int currDep, String slmLabel, Buffered
 		//calculate index for current image
 		ind = tilingDim  * tilingDim * currCut + currY * tilingDim + currX;
 		//snap and save an image
-		gui.snapAndAddImage(acquName, ind, 0, 0, currDep);
+		//gui.snapAndAddImage(acquName, ind, 0, 0, currDep);
+		tempBFImage = mm.live().snap(true);
+		storeData.putImage(tempBFImage);
 		print("BF: Depth " + currDep + " Image " + (currCut+1) + " snapped");
 		
 		//set shutter closed
@@ -137,7 +139,9 @@ snapCurrPattern(int currCut, int currX, int currY, int currPtrn, int numSubImgs,
 			ind = tilingDim * tilingDim * numSubImgs * currCut + currY * tilingDim * numSubImgs + currX * numSubImgs + i;
 //			ind = tilingDim * tilingDim * 3 * currCut + currY * tilingDim * 3 + currX * 3 + i;
 			//snap and save an image
-			gui.snapAndAddImage(acquName, ind, currX, currY, currPtrn+dep);
+			//gui.snapAndAddImage(acquName, ind, currX, currY, currPtrn+dep);
+			tempPatternImage = mm.live().snap(true);
+			storeData.putImage(tempPatternImage);
 			print("Slice: " + (currCut) + " Y: " + (currY) + " X: " + (currX) + " image: " + (i) + " snapped");
 			
 			//set shutter closed
@@ -214,7 +218,8 @@ BufferedImage brightField = patternObject.brightField;
 BufferedImage[] allPatterns = patternObject.allPatterns;
 
 // Process begins
-gui.openAcquisition(acquName, rootDir, nrFrames, nrChannels, nrSlices, nrPositions, show, save);
+//gui.openAcquisition(acquName, rootDir, nrFrames, nrChannels, nrSlices, nrPositions, show, save);
+storeData = mm.data().createMultipageTIFFDatastore(rootDir,false,false);
 
 // For each cut
 for(int i = 0; i < cuts; i++){
