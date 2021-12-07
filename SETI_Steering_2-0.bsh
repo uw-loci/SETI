@@ -122,7 +122,7 @@ snapBF(int currCut, int currX, int currY, int currDep, String slmLabel, Buffered
 		//snap and save an image
 		//gui.snapAndAddImage(acquName, ind, 0, 0, currDep);
 		tempBFImage = mm.live().snap(true);
-		storeData.putImage(tempBFImage);
+		storeData.putImage(tempBFImage.get(0));
 		print("BF: Depth " + currDep + " Image " + (currCut+1) + " snapped");
 		
 		//set shutter closed
@@ -141,7 +141,7 @@ snapCurrPattern(int currCut, int currX, int currY, int currPtrn, int numSubImgs,
 			//snap and save an image
 			//gui.snapAndAddImage(acquName, ind, currX, currY, currPtrn+dep);
 			tempPatternImage = mm.live().snap(true);
-			storeData.putImage(tempPatternImage);
+			storeData.putImage(tempPatternImage.get(0));
 			print("Slice: " + (currCut) + " Y: " + (currY) + " X: " + (currX) + " image: " + (i) + " snapped");
 			
 			//set shutter closed
