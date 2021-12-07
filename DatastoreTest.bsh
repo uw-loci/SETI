@@ -1,4 +1,5 @@
 directory = "C:/Users/admin2/Desktop/TestDatastore";
+//directory = "C:/Users/User/Documents/GitHub/SETI/Data Settings";
 
 someDatastore = mm.data().createMultipageTIFFDatastore(directory, false, false);
 
