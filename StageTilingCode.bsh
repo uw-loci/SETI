@@ -189,7 +189,7 @@ zeroStages(String[] stages){
 
 	travelTimeCalc(xStart,yStart,zStart,speeds);
 
-//Theoretically should step throught the stage sequences and move through the stages
+//Theoretically should step through the stage sequences and move through the stages
 //might have to load the stages first
  	for(k = 0; k < numLines; k++){
  		
