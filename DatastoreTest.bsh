@@ -1,6 +1,6 @@
-directory = "C:/Users/User/Documents/GitHub/SETI/Data Settings";
+directory = "C:/Users/admin2/Desktop/TestDatastore";
 
 someDatastore = mm.data().createMultipageTIFFDatastore(directory, false, false);
 
 tempPatternImage = mm.live().snap(true);
-someDatastore.putImage(tempPatternImage);
+someDatastore.putImage(tempPatternImage.get(0));
