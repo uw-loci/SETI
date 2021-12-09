@@ -114,7 +114,7 @@ convertBufferedToByte(BufferedImage img){
 	return imgOut;
 }
 
-snapBF(int currCut, int currX, int currY, int currDep, String slmLabel, BufferedImage brightField){
+snapBF(int currCut, int currX, int currY, int currDep, String slmLabel, BufferedImage brightField, Datastore storeData){
 		mmc.setExposure(exposure/2);
 		switchPattern(slmLabel, convertBufferedToByte(brightField));
 		//calculate index for current image
@@ -130,7 +130,7 @@ snapBF(int currCut, int currX, int currY, int currDep, String slmLabel, Buffered
 		mmc.waitForSystem();
 }
 
-snapCurrPattern(int currCut, int currX, int currY, int currPtrn, int numSubImgs, String slmLabel, BufferedImage[] pattern){ 
+snapCurrPattern(int currCut, int currX, int currY, int currPtrn, int numSubImgs, String slmLabel, BufferedImage[] pattern, Datastore storeData){ 
 	//physical slices, curr optical slices, #on each slice, total ims per slice
 		mmc.setExposure(exposure);
 		for (int i = 0; i < numSubImgs; i++){
@@ -232,10 +232,10 @@ for(int i = 0; i < cuts; i++){
 		for (int y = 0; y < tilingDim; y++){
 			for (int x = 0; x < tilingDim; x++){
 				imagingTrigger();
-				snapBF(i, x, y, j, slmLabel, brightField);
+				snapBF(i, x, y, j, slmLabel, brightField, storeData);
 				//for each pattern				
 				for (int k = 0; k < numPatterns; k++){
-					snapCurrPattern(i, x, y, k, numSubImgs, slmLabel, allPatterns);
+					snapCurrPattern(i, x, y, k, numSubImgs, slmLabel, allPatterns, storeData);
 				} 
 			}
 		}
