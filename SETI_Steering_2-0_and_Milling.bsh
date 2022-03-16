@@ -1,0 +1,442 @@
+// SETI 2.0 Steering Script 
+// Modified from Yiqun Ma's Tiling-all-in-one-folder.bsh
+// Imaging Methodology By Niklas Gahm
+// Milling Methodology By Zachary Gahl
+// 2022/01/05
+
+// Notes for Upgrading to SETI 2.0
+// - at various points there's specific comments about things that should be updated for 2.0 marked with ------------------ at the end
+// - any reference to arduino needs to be removed
+// - wait times may be unnecessary since uManager theoretically knows when some step is completed
+
+// Imports
+import java.io.File;
+import java.lang.Math;
+import java.awt.image;
+import javax.imageio.ImageIO;
+
+
+//------------------ INPUTS ----------------------------------------
+inputs(){
+	int depthOfSectioning = 10;// total depth of physical sectioning in um (10um per cut).
+								//eg: 200 for 200um and 20 cuts
+	int dep = 1; // including the top surface, how many optical slices (10 um each)?
+	int numPatterns = 1; // number of different patterns used.  
+	int tilingDim = 3;
+	
+	// set camera exposure in ms				
+	double exposure = 1; 
+	int objective = 20;
+	int xTiles = 3;		// NOTE: matched G Code only supports 3x3 at the moment 
+	int yTiles = 3;
+	int zStepSize = 10; // in um 
+
+	String acquName = "2018-11-20-Tissue-14Bit-20MHz-Tiling-Highlighter-2";  //name of folder generated
+	
+	
+	// NOTE! All File paths must use / or \\ instead of \ on Windows
+	
+	String rootDir = "C:/Users/admin2/Box Sync/SETI/";
+	//rootDir = "C:/Users/admin2/Desktop/Acquisitions"; //address of mother folder
+	
+	String dlpPattern = "C:/Users/admin2/Documents/GitHub/SETI/Steering Code/Patterns/1920x1080/3 Sub Image Perfect Bar 21 Pixels 0 Aperture 0deg Rotation";	// Folder Containg Patterns for DLP
+
+	show = true;	//to display every image taken as if you clicked snap
+	save = true;	//to save the images
+
+	return this;
+}
+//--------------- END INPUT ----------------------------------------
+
+
+
+
+
+// Methods
+loadPatterns(String dlpPattern){
+	// Patterns Path
+	File fpath = new File(dlpPattern);
+	File[] dirList = fpath.listFiles();
+	BufferedImage [] allPatterns = new BufferedImage[dirList.length];
+	numSubImgs = dirList.length;
+	
+	// Patterns
+	for(int i = 0; i < dirList.length; i++){
+		try{
+			allPatterns[i] = ImageIO.read(dirList[i]);
+		}catch(IOException e){}
+	}
+	
+	// Brightfield Path
+	bfPath = fpath.toString();
+	bfPathInd = bfPath.lastIndexOf(File.separator);
+	bfPath = bfPath.substring(0, bfPathInd);
+	File bfPath = new File(bfPath);
+	File[] bfDirList = bfPath.listFiles();
+	BufferedImage brightField = ImageIO.read(bfDirList[0]);
+	
+	return this;
+}
+
+switchPattern(String slmLabel, byte[] pattern){
+	//set shutter open
+	mmc.setShutterOpen(true);
+	mmc.setSLMImage(slmLabel, pattern);
+	mmc.displaySLMImage(slmLabel);
+	//make sure that dlp is on
+	mmc.sleep(50);               
+}
+
+// NEW STUFF ------------------------------------------------
+travelTimeCalc(double xPos, double yPos, double zPos, Double[] stageSpeeds){
+	print("I'm in the travelTimeCalc method!");
+	
+	double xTime = Math.abs(xPos/stageSpeeds[0]);
+	print(xTime);
+	double yTime = Math.abs(yPos/stageSpeeds[1]);
+	print(yTime);
+	double zTime = Math.abs(zPos/stageSpeeds[2]);
+	print(zTime);
+
+	if(xTime > yTime && xTime > zTime){
+		print(xTime);
+		mmc.sleep(xTime);
+	}
+	else if(yTime > xTime && yTime > zTime){
+		print(yTime);
+		mmc.sleep(yTime);
+	}
+	else if(zTime > xTime && zTime > yTime){
+		print(zTime);
+		mmc.sleep(zTime);
+	}
+	else{
+		print(10000);
+		mmc.sleep(10000);
+	}
+	mmc.sleep(1000);
+}
+shutterOff(){
+	//once milling cycle has started, shutter off
+	mmc.setShutterOpen(false);
+}
+activateMill(){
+	print("I'm in the activateMill method!");
+}
+
+millSample(String[] stages){
+	print("I'm in the millSample method!");
+
+	//Default Positions for MILLING------UPDATE AS NEEDED FOR SYSTEM***********
+	double brushPos = 200000;
+	double xMiddle = 275000;
+	double millTop = 8000;
+	double millBottom = 32000;
+
+	//Sample is placed above the mill
+	mmc.setPosition(stages[1], millTop);
+	mmc.waitForDevice(stages[1]);
+
+	mmc.setPosition(stages[0], xMiddle);
+	mmc.waitForDevice(stages[0]);
+
+	mmc.setPosition(stages[1], millBottom);
+	mmc.waitForDevice(stages[1]);
+
+	mmc.setPosition(stages[0], brushPos);
+	mmc.waitForDevice(stages[0]);
+}
+
+returnForImage(double xPos, double yPos, double zPos, String[] stages, Double[] speeds){
+	print("I'm in the returnForImage method!");
+	
+	//Default Positions for IMAGING------UPDATE AS NEEDED FOR SYSTEM***********
+	double xImagePos = xPos;
+	double yImagePos = yPos;
+	double zImagePos = zPos;
+
+	
+	double xDist = mmc.getPosition(stages[0]) - xImagePos;
+	double yDist = mmc.getPosition(stages[1]) - yImagePos;
+	double zDist = mmc.getPosition(stages[2]) - zImagePos;
+
+	mmc.setPosition(stages[0], xImagePos);
+	travelTimeCalc(xDist,yDist,zDist,speeds);
+	
+	mmc.setPosition(stages[1], yImagePos);
+	mmc.setPosition(stages[2], zImagePos);
+	travelTimeCalc(xDist,yDist,zDist,speeds);
+}
+
+startMilling(double xPos, double yPos, double zPos, String[] stages, Double[] speeds){
+	print("I'm in the startMilling method!");
+	shutterOff();
+	
+	double xStore = xPos;
+	double yStore = yPos;
+	double zStore = zPos;
+	double millDiff = 0.0; //Measured difference between the optical and milling z-plane
+
+	//Default Positions for PREPARING FOR MILLING------UPDATE AS NEEDED FOR SYSTEM***********
+	double zMillPos = zStore + millDiff;
+	double yStartPos = 5000;
+	double brushEdge = 200000;
+
+	mmc.setPosition(stages[2], 0);
+	//Ensures that the sample has enough time to move to safe position
+	travelTimeCalc(brushEdge-xStore, yStore-yStartPos, zStore - zMillPos, speeds);
+	
+	mmc.setPosition(stages[1], yStartPos);
+	mmc.setPosition(stages[0], brushEdge);
+
+	travelTimeCalc(brushEdge-xStore, yStore-yStartPos, zStore - zMillPos, speeds);
+
+	mmc.setPosition(stages[2], zMillPos);
+	travelTimeCalc(brushEdge-xStore, yStore-yStartPos, zMillPos, speeds);
+
+	activateMill();
+	millSample(stages);
+	returnForImage(xStore, yStore, zStore, stages, speeds);
+	
+}
+
+
+// ABOVE IS NEW STUFF -----------------------------------------------
+
+convertBufferedToByte(BufferedImage img){
+	ByteArrayOutputStream imgB = new ByteArrayOutputStream();
+	ImageIO.write(img, "jpg", imgB);
+	byte[] imgOut = imgB.toByteArray();
+	return imgOut;
+}
+
+snapBF(int currCut, int currX, int currY, int currDep, String slmLabel, BufferedImage brightField, Datastore storeData){
+		mmc.setExposure(exposure/2);
+		switchPattern(slmLabel, convertBufferedToByte(brightField));
+		//calculate index for current image
+		ind = tilingDim  * tilingDim * currCut + currY * tilingDim + currX;
+		//snap and save an image
+		//gui.snapAndAddImage(acquName, ind, 0, 0, currDep);
+		tempBFImage = mm.live().snap(true);
+		storeData.putImage(tempBFImage.get(0));
+		print("BF: Depth " + currDep + " Image " + (currCut+1) + " snapped");
+		
+		//set shutter closed
+		mmc.setShutterOpen(false);
+		mmc.waitForSystem();
+}
+
+snapCurrPattern(int currCut, int currX, int currY, int currPtrn, int numSubImgs, String slmLabel, BufferedImage[] pattern, Datastore storeData){ 
+	//physical slices, curr optical slices, #on each slice, total ims per slice
+		mmc.setExposure(exposure);
+		for (int i = 0; i < numSubImgs; i++){
+			switchPattern(slmLabel, convertBufferedToByte(pattern[i]));
+			//calculate the index of the image
+			ind = tilingDim * tilingDim * numSubImgs * currCut + currY * tilingDim * numSubImgs + currX * numSubImgs + i;
+//			ind = tilingDim * tilingDim * 3 * currCut + currY * tilingDim * 3 + currX * 3 + i;
+			//snap and save an image
+			//gui.snapAndAddImage(acquName, ind, currX, currY, currPtrn+dep);
+			tempPatternImage = mm.live().snap(true);
+			storeData.putImage(tempPatternImage.get(0));
+			print("Slice: " + (currCut) + " Y: " + (currY) + " X: " + (currX) + " image: " + (i) + " snapped");
+			
+			//set shutter closed
+			mmc.setShutterOpen(false);
+			mmc.waitForSystem();
+	}
+}
+
+imagingTrigger(){
+	shutterOff();
+}
+
+zeroStages(String[] stages){
+	print("I'm in the zero method!");
+	double xPos = mmc.getPosition(stages[0]);
+	double yPos = mmc.getPosition(stages[1]);
+	double zPos = mmc.getPosition(stages[2]);
+	
+	mmc.setPosition(stages[0], 0);
+ 	mmc.setPosition(stages[1], 0);
+ 	mmc.setPosition(stages[2], 0);
+
+ 	travelTimeCalc(xPos,yPos,zPos,speeds);
+}
+
+
+
+
+// Main
+mm.acquisitions().haltAcquisition();
+mmc.setShutterOpen(false);
+mm.scripter().clearMessageWindow();
+
+// Load in Inputs
+inputsObject = inputs();
+
+depthOfSectioning = inputsObject.depthOfSectioning;
+dep = inputsObject.dep;
+numPatterns = inputsObject.numPatterns;
+tilingDim = inputsObject.tilingDim;
+exposure = inputsObject.exposure; 
+inputsObject.objective = inputsObject.objective;
+xTiles = inputsObject.xTiles;
+yTiles = inputsObject.yTiles;
+zStepSize = inputsObject.zStepSize;
+rootDir = inputsObject.rootDir;
+dlpPattern = inputsObject.dlpPattern;
+show = inputsObject.show;
+save = inputsObject.save;
+
+// Setting up Variables 
+// naming convention can be changed for 2.0 since XYZ information in position file -------------------------------
+acquName = inputsObject.acquName + " " + objective + "x_" + exposure+"ms_" + 
+	xTiles + "x_" + yTiles + "y_" + ceil(depthOfSectioning/zStepSize) + "z_" + 
+	zStepSize + "um_cuts";
+
+// Look into removing the next four variables!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+nrFrames = 0;  
+nrChannels = 3;
+nrSlices = 3;
+nrPositions = (numPatterns+1)*dep; //(numPatterns + bright field) * depths
+
+cuts = ceil(depthOfSectioning/zStepSize);
+
+slmLabel = mmc.getSLMDevice();
+patternObject = loadPatterns(dlpPattern);
+numSubImgs = patternObject.numSubImgs;
+BufferedImage brightField = patternObject.brightField;
+BufferedImage[] allPatterns = patternObject.allPatterns;
+
+// ZACH'S MILLING INITIATION STUFF ---------------------------------------------------------------------------------------------
+//Create array to store stage labels
+//Array stores stages in x, y, z order
+ 	stages = new String[]{"LTS300_45186414", "KDC101_27750181", "KDC101_27750156"};
+ 	speeds = new Double[]{10.0,1.0,2.4};
+
+/*INITIALIZE STAGE VARIABLES:
+ * 
+ * Variables start with axis of stage
+ * Start: desired starting position in um
+ * Step: desired step size in um
+ * TileNum: the number of images collected along that dimension
+ * CurrPos: initialized for creating stage sequences
+ */
+	double xStart = 100000;
+	double xStep = 5000;
+	double xTileNum = 5;
+	double xCurrPos = xStart;
+			
+	double yStart = 25000;
+	double yStep = 1000;
+	double yTileNum = 2;
+	double yCurrPos = yStart;
+
+	double zStart = 35000;
+	double zStep = 1000;
+	double zTileNum = 4;
+	double zCurrPos = zStart;
+
+//Initializes the variable that determines the location of the generated position data in the posList arrays
+	int currLine = 0;
+//Total number of lines/how big the posList arrays should be
+	int numLines = xTileNum * yTileNum * zTileNum;
+
+//Initialization of double arrays that are used to store the stage position info for tiling
+ 	Double[] xPosList = new Double[numLines];
+ 	Double[] yPosList = new Double[numLines];
+ 	Double[] zPosList = new Double[numLines];
+
+//Loops designed to populate the posList arrays
+ 	for(int i = 0; i < zTileNum; i++){
+ 		for(int j = 0; j < yTileNum; j++) {
+ 			for(int k = 0; k < xTileNum; k++) {
+	 			xPosList[currLine] = Double.valueOf(xCurrPos);
+	 			yPosList[currLine] = Double.valueOf(yCurrPos);
+	 			zPosList[currLine] = Double.valueOf(zCurrPos);
+	
+				//print(xCurrPos + " " + yCurrPos + "\n");
+	 			xCurrPos = xCurrPos + xStep;
+	 			currLine++;
+ 			}
+	 		xCurrPos = xStart;
+	 		yCurrPos = yCurrPos + yStep;
+ 		}
+ 		xCurrPos = xStart;
+ 		yCurrPos = yStart;
+ 		zCurrPos += zStep;
+ 	}
+ 	
+	zeroStages(stages);
+
+	mmc.setPosition(stages[0], xStart);
+	mmc.setPosition(stages[1], yStart);
+	mmc.setPosition(stages[2], zStart);
+
+	travelTimeCalc(xStart,yStart,zStart,speeds);
+
+//Theoretically should step through the stage sequences and move through the stages
+//might have to load the stages first
+//This is handled in imaging loops
+/* 	for(k = 0; k < numLines; k++){
+ 		
+ 		mmc.setPosition(stages[2],zPosList[k]);
+ 		mmc.waitForDevice(stages[2]);
+
+		if(k != 0){
+	 		if(zPosList[k]!= zPosList[k-1]){
+				startMilling(xPosList[k],yPosList[k],zPosList[k],stages,speeds);
+			}
+		}
+ 		mmc.setPosition(stages[1],yPosList[k]);
+ 		mmc.waitForDevice(stages[1]);		
+ 		
+ 		mmc.setPosition(stages[0],xPosList[k]);
+ 		mmc.waitForDevice(stages[0]);
+		
+ 	}
+
+	//startMilling(mmc.getPosition(stages[0]),mmc.getPosition(stages[1]),mmc.getPosition(stages[2]),stages,speeds);
+
+	zeroStages(stages);
+	*/
+// -------------------------------------------------------------------------------------------------
+
+// Process begins
+//gui.openAcquisition(acquName, rootDir, nrFrames, nrChannels, nrSlices, nrPositions, show, save);
+storeData = mm.data().createMultipageTIFFDatastore(rootDir,false,false);
+
+// For each cut
+for(int i = 0; i < cuts; i++){
+	print("slice: " + i);
+	mmc.setShutterOpen(false); // all 
+	//for each depth
+	for (int j = 0; j < dep; j++){
+		for (int y = 0; y < tilingDim; y++){
+			for (int x = 0; x < tilingDim; x++){
+				imagingTrigger();
+				snapBF(i, x, y, j, slmLabel, brightField, storeData);
+				//for each pattern				
+				for (int k = 0; k < numPatterns; k++){
+					snapCurrPattern(i, x, y, k, numSubImgs, slmLabel, allPatterns, storeData);
+				} 
+			}
+		}
+	}
+
+
+	// after images taken, trigger the milling cycle
+	startMilling(xPosList[k],yPosList[k],zPosList[k],stages,speeds);
+	// When finished,
+	print("Milling Done");
+	mmc.sleep(2000);
+}
+
+//after all cuts done, close aquisition
+mm.acquisitions().haltAcquisition();
+mmc.setShutterOpen(false);
+print("ACQUISITION Done");
+
+
+
+
