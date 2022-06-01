@@ -10,6 +10,7 @@ Version 1.10.0 of Anaconda Navigator (https://www.anaconda.com/products/individu
 Version 1.0.0 of PyImageJ 
 Version 6.2.0 of Jupyter Notebook 
 Version 1.30 of BeakerX 
+Version 0.17.2 of scikit-image
 
 Installation Process:
 - Install FLIMJ Plugin for FIJI
@@ -31,6 +32,12 @@ Installation Process:
 --- Launch the command terminal from Anaconda Navigator
 --- Type in Commands:
 --- conda install -c conda-forge ipywidgets beakerx
+- Install scikit-image
+--- In Anaconda Navigator switch to the Environments tab
+--- Change the displayed package list to Not installed
+--- Search for scikit-image
+--- Select the scikit-image package from the list 
+--- Select Apply
 - On the Jupyter Notebooks Panel select install
 - Once installed select launch
 
