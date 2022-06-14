@@ -30,11 +30,11 @@ Installation Process:
 Raw Data Folder Structure:
 - Main Data Folder
 --- Embedding Method
------ Sample
-------- Image Sequence Acquisition
+----- Sample (optional, img files can be placed directly under embedding method or sample without problem)
+------- Image Sequence Acquisition (optional, img files can be placed directly under embedding method or sample without problem)
 i.e.
 - data_t
 --- LR White
 ----- 2022-01-14 LR White Chicken
-------- Structure 1
+------- Structure 1 
 
