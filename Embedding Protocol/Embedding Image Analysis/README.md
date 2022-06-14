@@ -4,41 +4,30 @@ This folder contains the Image Analysis script for determining the embedding met
 
 Installation Requirements:
 Windows 10 operating system
-Version 2.1.0/1.53c of Fiji (https://imagej.net/Fiji.html#Downloads)
-Version 1.0.0 of FLIMJ 
-Version 1.10.0 of Anaconda Navigator (https://www.anaconda.com/products/individual)
-Version 1.0.0 of PyImageJ 
-Version 6.2.0 of Jupyter Notebook 
-Version 1.30 of BeakerX 
+Version 2.20.0 of Anaconda Navigator (https://www.anaconda.com/products/individual)
 Version 0.17.2 of scikit-image
+Version 1.2.7 of image_quality
 
 Installation Process:
-- Install FLIMJ Plugin for FIJI
---- Open the local install of FIJI 
---- Open the ImageJ Updater by selecting  “Help → Update...”
---- Open the Update Site List by selecting “Manage update sites” in the bottom left corner of the window
---- In the list of Update sites scroll down and check “FLIMJ” 
---- Close the “Manage update sites” window
---- Select “Apply Changes” in the “ImageJ Updater” Window
---- Restart FIJI
+- Install Anaconda Navigator
 - Start Anaconda Navigator
-- Install PyImageJ Environment 
---- Launch the command terminal from Anaconda Navigator
---- Type in Commands:
---- conda create -n pyimagej -c conda-forge pyimagej openjdk=8
---- conda activate pyimagej
-- Switch to the PyImageJ Environment in Anaconda Navigator by selecting it from the dropdown menu next to “Applications on”
-- Install BeakerX and PyWidgets
---- Launch the command terminal from Anaconda Navigator
---- Type in Commands:
---- conda install -c conda-forge ipywidgets beakerx
 - Install scikit-image
 --- In Anaconda Navigator switch to the Environments tab
 --- Change the displayed package list to Not installed
 --- Search for scikit-image
 --- Select the scikit-image package from the list 
 --- Select Apply
-- On the Jupyter Notebooks Panel select install
-- Once installed select launch
-
+- Install Image Quality Package
+--- Launch the command terminal from Anaconda Navigator
+--- Type in Commands:
+--- pip install image-quality
+- Comment Out 1 line in brisque.py
+--- Navigate to your Anaconda install (Generally under C://Users/User/anaconda3)
+--- Within the Anaconda install folder navigate to ~\anaconda3\Lib\site-packages\imquality
+--- Open brisque.py with an editor 
+--- Comment out (#) line 45      self.image = skimage.color.rgb2gray(self.image)
+--- Save the file
+------ This enables BRISQUE to run on gray scale images. Uncomment for RGB images.
+- Launch Jupyter Notebooks Panel from Anaconda Navigator
+- Open Embedding_Image_Quality.ipynb in Jupyter Notebook
 
