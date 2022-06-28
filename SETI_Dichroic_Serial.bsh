@@ -1,0 +1,8 @@
+
+mmc.setProperty("FreeSerialPort","Command","R F=10000");
+mmc.setProperty("FreeSerialPort","Command","WT F=20000");
+
+mmc.setProperty("FreeSerialPort","Command","R F=10000");
+
+mmc.setProperty("FreeSerialPort","Command","WHERE X Y Z F");
+print(mmc.getProperty("FreeSerialPort","Response"));
