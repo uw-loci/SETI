@@ -1,8 +1,12 @@
 
-mmc.setProperty("FreeSerialPort","Command","R F=10000");
-mmc.setProperty("FreeSerialPort","Command","WT F=20000");
+//mmc.setProperty("FreeSerialPort","Command","R F=10000");
+//mmc.setProperty("FreeSerialPort","Command","WT F=20000");
 
-mmc.setProperty("FreeSerialPort","Command","R F=10000");
+//mmc.setProperty("FreeSerialPort","Command","R F=10000");
 
-mmc.setProperty("FreeSerialPort","Command","WHERE X Y Z F");
-print(mmc.getProperty("FreeSerialPort","Response"));
+mmc.setProperty("FilterSlider:S:32","State","0");
+mmc.waitForDevice("FilterSlider:S:32");
+mmc.sleep(5000);
+
+mmc.setProperty("TigerCommHub","SerialCommand","WHERE S");
+print(mmc.getProperty("TigerCommHub","SerialResponse"));
