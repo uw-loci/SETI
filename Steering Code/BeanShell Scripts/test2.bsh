@@ -1,0 +1,172 @@
+// Imports
+import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.util.ArrayList;
+import java.util.List;
+import java.lang.String;
+import ij.IJ; 
+//import java.lang.
+
+//import java.io.IOException;
+//import java.nio.file.Path;
+//import java.nio.file.Paths;
+//import java.nio.file.Files;
+//import java.awt.image;
+//import javax.imageio.ImageIO;
+
+// Inputs
+inputs(){
+	String fpath = "C:/Users/User/Documents/GitHub/SETI/Steering Code/Patterns/1920x1080/3 Sub Image Perfect Bar 21 Pixels 0 Aperture 0deg Rotation";
+	int validity_check = 1;
+	return this;
+}
+
+
+
+// Methods
+imgFileSearch( String fileType, File folder, ArrayList result ){
+	
+	File[] files = folder.listFiles();
+	if (files !=null){
+		for (File f : files){
+			if (f.isFile()) {
+				if (f.getName().matches(fileType)) {
+					result.add(f.getAbsolutePath());
+				}
+			}
+		}
+	}
+
+	return result; 
+}
+
+// Find the BrightField Reference File
+bfImgFileSearch( String fileType, String folder, int validity_check ){
+
+	
+	bfpath = 1;
+	if (validity_check == 1){
+		print("System File Seperator: " + File.separator);
+	}
+	folder = folder.replace("\\", File.separator);
+	folder = folder.replace("/", File.separator);
+	
+	if (validity_check == 1){
+		print(folder);
+	}
+	
+	int sep = folder.lastIndexOf(File.separator);
+	folder = folder.substring(0,sep);
+	// Check seperator is correct
+	if (validity_check == 1){
+		print(folder);
+	}
+
+	File bfpath = new File(folder);
+	File[] files = bfpath.listFiles();
+	if (files !=null){
+		for (File f : files){
+			if (f.isFile()) {
+				if (f.getName().matches(fileType)) {
+					 return f.getAbsolutePath();
+				}
+			}
+		}
+	}
+	
+	return bfpath;
+}
+
+// Load all the Patterns Found into a Single Array
+loadAllPatterns(String bfPattern, ArrayList subPatterns, ArrayList dlp_patterns, int validity_check) {
+
+	for (p : subPatterns ){
+		dlp_patterns.add(IJ.openImage(p));
+	}
+	dlp_patterns.add(IJ.openImage(bfPattern));
+
+	if (validity_check == 1){
+		print("Number of Patterns Total: " + dlp_patterns.size());
+	}
+
+	return dlp_patterns;
+}
+
+
+
+
+
+
+
+
+switchToPattern(pattern){
+	// Patterns Path
+//	File fpath = new File(dlpPattern);
+//	File[] dirList = fpath.listFiles();
+	//byte[][] allPatterns = new byte[dirList.length][];
+	//numSubImgs = dirList.length;
+	
+	// Patterns
+	//for(int i = 0; i < dirList.length; i++){
+	//	try{
+	//		allPatterns[i][] = Files.readAllBytes(dirList[i]);
+	//	}catch(IOException e){}
+	//}
+	
+	// Brightfield Path 
+//	bfPath = fpath.toString();
+//	bfPathInd = bfPath.lastIndexOf(File.separator);
+//	bfPath = bfPath.substring(0, bfPathInd);
+//	File bfPath = new File(bfPath);
+//	File[] bfDirList = bfPath.listFiles();
+//	byte[] brightField = Files.readAllBytes(bfDirList[0]);
+	
+	return 1;
+}
+
+
+
+
+
+
+
+
+
+// Main
+
+// load in inputs
+inputsObj = inputs();
+validity_check = inputsObj.validity_check;
+if (validity_check == 1){
+	print(inputsObj.fpath);
+}
+
+
+
+ArrayList img_load_list = new ArrayList();
+File fpath = new File(inputsObj.fpath);
+// Check correct folder
+if (validity_check == 1){
+	print(fpath);
+}
+
+// Get Path to Sub-Image Patterns
+img_load_list = imgFileSearch( ".*.bmp", fpath, img_load_list );
+// Get Path to BrightField Reference File
+bf_path = bfImgFileSearch(".*\\.bmp", inputsObj.fpath, validity_check);
+//Check correct files found
+if (validity_check == 1){
+	for (int i = 0; i < img_load_list.size(); i++){
+	  print(img_load_list.get(i));
+	}
+	print(bf_path);
+}
+
+
+// Load Patterns
+ArrayList dlp_patterns = new ArrayList();
+dlp_patterns = loadAllPatterns(bf_path, img_load_list, dlp_patterns, validity_check);
+
+
+print("Done\n");
