@@ -85,7 +85,7 @@ switchPattern(String slmLabel, byte[] pattern){
 	mmc.sleep(50);               
 }
 
-// Replace the next three methods with milling control ------------------------------------------------
+// Replace the next three methods with milling control in 2.0 ------------------------------------------------
 activateMill(){
 	mmc.setState("Arduino-Switch", 32);  //pin 13 HIGH, triggers milling cycle (pin 15 on mill)
 	mmc.setShutterOpen(true);
@@ -105,7 +105,7 @@ shutterOff(){
 	mmc.setShutterOpen(false);
 	mmc.setState("Arduino-Switch", 0);	//all pins LOW
 }
-// Replace the above three methods with milling control -----------------------------------------------
+// Replace the above three methods with milling control in 2.0  -----------------------------------------------
 
 convertBufferedToByte(BufferedImage img){
 	ByteArrayOutputStream imgB = new ByteArrayOutputStream();

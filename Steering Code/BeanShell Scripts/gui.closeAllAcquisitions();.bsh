@@ -1,3 +1,0 @@
-gui.closeAllAcquisitions();
-	mmc.setShutterOpen(false);
-	mmc.setState("Arduino-Switch", 0);	//all pins LOW
