@@ -12,18 +12,14 @@
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
+import java.util.Arrays;
 import java.util.ArrayList;
 import java.util.List;
 import java.lang.String;
 import ij.IJ; 
-//import java.lang.
-
-//import java.io.IOException;
-//import java.nio.file.Path;
-//import java.nio.file.Paths;
-//import java.nio.file.Files;
-//import java.awt.image;
-//import javax.imageio.ImageIO;
+import ImageConverter;
+import org.micromanager.projector.ProjectorActions;
+import org.micromanager.projector.internal.devices.SLM;
 
 
 
@@ -62,7 +58,7 @@ inputs(){
 
 
 
-// Methods
+//------------------ Methods ---------------------------------------
 // Find the Pattern Files
 imgFileSearch( String fileType, File folder, ArrayList result ){
 	
@@ -117,12 +113,36 @@ bfImgFileSearch( String fileType, String folder, boolean validity_check ){
 	return bfpath;
 }
 
+//Read Image as Byte Array
+imgReadByte(imgSource){
+	FileInputStream in = new FileInputStream(imgSource);
+	ByteArrayOutputStream bos = new ByteArrayOutputStream();
+	byte[] buffer = new byte[1024];
+	for (int i; (i = in.read(buffer)) != -1; ) {
+  		bos.write(buffer, 0, i);
+	}
+	in.close();
+	byte[] imageData = bos.toByteArray();
+	bos.close();
+	return imageData;
+}
+
+//Read Image as Byte Array Without Meta Data
+imgReadByte2(imgSource){
+	img = IJ.openImage(imgSource);
+	ImageConverter converter = new ImageConverter();
+//	img_byte = (byte[])converter.ConvertTo(image, typeof(byte[]));
+	return = img_byte;
+}
+
 // Load all the Patterns Found into a Single Array
 loadAllPatterns(String bfPattern, ArrayList subPatterns, ArrayList dlp_patterns, boolean validity_check) {
+	File bfPatternFile = new File(bfPattern);
 
-	dlp_patterns.add(IJ.openImage(bfPattern));
+
+	dlp_patterns.add(imgReadByte2(bfPatternFile));
 	for (p : subPatterns ){
-		dlp_patterns.add(IJ.openImage(p));
+		dlp_patterns.add(imgReadByte2(p));
 	}
 
 	if (validity_check){
@@ -164,10 +184,31 @@ dlpPatternInitialization(String dlpPatternPathOrig, ArrayList dlp_patterns, bool
 	return dlp_patterns;
 }
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 // Changes the displayed pattern on the DLP to the input pattern
-switchPattern(String slmLabel, pattern){
+switchPattern(String slmLabel, pattern, boolean validity_check){
 	//set shutter open
 	mmc.setShutterOpen(true);
+
+	if(validity_check){
+		print(slmLabel);
+		print(pattern.length);
+	}
+	
 	mmc.setSLMImage(slmLabel, pattern);
 	mmc.displaySLMImage(slmLabel);
 	//make sure that dlp is on
@@ -176,10 +217,11 @@ switchPattern(String slmLabel, pattern){
 }
 
 
+
 // Captures an Image
 snapImg(int currCut, int currX, int currY, int currDep, int currPtrn, String slmLabel, pattern, double exposure, String acquName, boolean bfFlag, boolean validity_check){
 		mmc.setExposure(exposure/2);
-		switchPattern(slmLabel, pattern);
+		switchPattern(slmLabel, pattern, validity_check);
 		//calculate index for current image
 		ind = (tilingDim * tilingDim * currCut * 4) + (currY * tilingDim) + currX + currPtrn;
 		if(validity_check){
