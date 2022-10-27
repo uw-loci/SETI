@@ -41,10 +41,13 @@ inputs(){
 	
 	// NOTE! All File paths must use / or \\ instead of \ on Windows
 	
-	String rootDir = "C:/Users/admin2/Box Sync/SETI/";
-	//rootDir = "C:/Users/admin2/Desktop/Acquisitions"; //address of mother folder
+	String rootDir = "C:/Users/admin2/Box Sync/SETI/"; //address of mother folder
 	
 	String dlpPatternPath = "C:/Users/admin2/Documents/GitHub/SETI/Steering Code/Patterns/1920x1080/3 Sub Image Perfect Bar 21 Pixels 0 Aperture 0deg Rotation";	// Folder Containg Patterns for DLP
+
+	// Dimensions of Pattern Image File
+	int patDim1 = 1920;
+	int patDim2 = 1080;
 
 	show = true;	// to display every image taken as if you clicked snap
 	save = true;	// to save the images
@@ -78,7 +81,6 @@ imgFileSearch( String fileType, File folder, ArrayList result ){
 
 // Find the BrightField Reference File
 bfImgFileSearch( String fileType, String folder, boolean validity_check ){
-
 	
 	bfpath = false;
 	if (validity_check){
@@ -113,8 +115,9 @@ bfImgFileSearch( String fileType, String folder, boolean validity_check ){
 	return bfpath;
 }
 
-//Read Image as Byte Array
-imgReadByte(imgSource){
+
+//Read Image as Byte[][]
+imgReadByte(imgSource, int patDim1, int patDim2, boolean validity_check){
 	FileInputStream in = new FileInputStream(imgSource);
 	ByteArrayOutputStream bos = new ByteArrayOutputStream();
 	byte[] buffer = new byte[1024];
@@ -122,27 +125,58 @@ imgReadByte(imgSource){
   		bos.write(buffer, 0, i);
 	}
 	in.close();
-	byte[] imageData = bos.toByteArray();
+	byte[] imageDataTemp = bos.toByteArray();
 	bos.close();
+
+	if (validity_check){
+		print("Original Read In Length: " + imageDataTemp.length);
+	}
+	
+	// Remove meta Data by only keeping the dimensional bytes
+	patOffset = imageDataTemp.length - (patDim1 * patDim2);
+	if (validity_check){
+		print("Index Offset for Meta Data: " + patOffset);
+	}
+
+	imageDataTemp = Arrays.copyOfRange(imageDataTemp, patOffset, imageDataTemp.length);
+	
+	if (validity_check){
+		print("Meta Data Stripped Length: " + imageDataTemp.length);
+	}
+
+	// Reshape read in data from a byte[] to a byte[][]
+	imageData = reshape(imageDataTemp, patDim1, patDim2);
+	if(validity_check){
+		print("Reshaped Dim2: " + imageData[0].length);
+		print("\n");
+	}
 	return imageData;
 }
 
-//Read Image as Byte Array Without Meta Data
-imgReadByte2(imgSource){
-	img = IJ.openImage(imgSource);
-	ImageConverter converter = new ImageConverter();
-//	img_byte = (byte[])converter.ConvertTo(image, typeof(byte[]));
-	return = img_byte;
+
+// Reshape a 1D byte array to a 2D byte array
+byte[][] reshape(A1D, int m, int n){
+	int origM = A1D.length;
+	if(origM != m*n){
+		throw new Exception("New matrix must be of same area as matix A");
+	}
+	byte[][] B = new byte[m][n];
+	int index = 0;
+	for(int i = 0;i<n;i++){
+		for(int j = 0;j<m;j++){
+			B[j][i] = A1D[index++];
+		}
+	}
+	return B;
 }
 
 // Load all the Patterns Found into a Single Array
-loadAllPatterns(String bfPattern, ArrayList subPatterns, ArrayList dlp_patterns, boolean validity_check) {
+loadAllPatterns(String bfPattern, ArrayList subPatterns, ArrayList dlp_patterns, int patDim1, int patDim2, boolean validity_check) {
 	File bfPatternFile = new File(bfPattern);
 
-
-	dlp_patterns.add(imgReadByte2(bfPatternFile));
+	dlp_patterns.add(imgReadByte(bfPatternFile, patDim1, patDim2, validity_check));
 	for (p : subPatterns ){
-		dlp_patterns.add(imgReadByte2(p));
+		dlp_patterns.add(imgReadByte(p, patDim1, patDim2, validity_check));
 	}
 
 	if (validity_check){
@@ -152,8 +186,10 @@ loadAllPatterns(String bfPattern, ArrayList subPatterns, ArrayList dlp_patterns,
 	return dlp_patterns;
 }
 
+
+
 // Initialize the DLP Patterns
-dlpPatternInitialization(String dlpPatternPathOrig, ArrayList dlp_patterns, boolean validity_check){
+dlpPatternInitialization(String dlpPatternPathOrig, ArrayList dlp_patterns, int patDim1, int patDim2, boolean validity_check){
 
 	if(validity_check){
 		print("Start DLP Initialization");
@@ -180,12 +216,9 @@ dlpPatternInitialization(String dlpPatternPathOrig, ArrayList dlp_patterns, bool
 	}
 	
 	// Load Patterns for the DLP
-	dlp_patterns = loadAllPatterns(bf_path, img_load_list, dlp_patterns, validity_check);
+	dlp_patterns = loadAllPatterns(bf_path, img_load_list, dlp_patterns, patDim1, patDim2, validity_check);
 	return dlp_patterns;
 }
-
-
-
 
 
 
@@ -320,6 +353,8 @@ dlpPatternPath = inputsObject.dlpPatternPath;
 show = inputsObject.show;
 save = inputsObject.save;
 validity_check = inputsObject.validity_check;
+int patDim1 = inputsObject.patDim1;
+int patDim2 = inputsObject.patDim2;
 
 // Setting up Variables 
 cuts = Math.ceil(depthOfSectioning/zStepSize);
@@ -339,7 +374,7 @@ if(validity_check){
 
 // Load DLP Patterns
 ArrayList dlp_patterns = new ArrayList();
-dlp_patterns = dlpPatternInitialization(dlpPatternPath, dlp_patterns, validity_check);
+dlp_patterns = dlpPatternInitialization(dlpPatternPath, dlp_patterns, patDim1, patDim2, validity_check);
 
 // Get DLP Device Label
 slmLabel = mmc.getSLMDevice();
