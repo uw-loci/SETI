@@ -1,40 +1,4 @@
 
-// Initialize the DLP Patterns
-dlpPatternInitialization(String dlpPatternPathOrig, ArrayList dlp_patterns, int patDim1, int patDim2, boolean validity_check){
-
-	if(validity_check){
-		print("Start DLP Initialization");
-	}
-
-	ArrayList img_load_list = new ArrayList();
-	File dlpPatternPath = new File(dlpPatternPathOrig);
-	// Check correct folder
-	if (validity_check){
-		print(dlpPatternPath);
-	}
-
-	// Get Path to Sub-Image Patterns
-	img_load_list = imgFileSearch( ".*.bmp", dlpPatternPath, img_load_list );
-	// Get Path to BrightField Reference File
-	bf_path = bfImgFileSearch(".*.bmp", dlpPatternPathOrig, validity_check);
-	
-	//Check correct files found
-	if (validity_check){
-		for (int i = 0; i < img_load_list.size(); i++){
-		  print(img_load_list.get(i));
-		}
-		print(bf_path);
-	}
-	
-	// Load Patterns for the DLP
-	dlp_patterns = loadAllPatterns(bf_path, img_load_list, dlp_patterns, patDim1, patDim2, validity_check);
-	return dlp_patterns;
-}
-
-
-
-
-
 
 
 

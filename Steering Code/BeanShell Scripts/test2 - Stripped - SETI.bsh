@@ -116,7 +116,7 @@ bfImgFileSearch( String fileType, String folder, boolean validity_check ){
 }
 
 
-//Read Image as Byte[][]
+//Read Image as byte[]
 imgReadByte(imgSource, int patDim1, int patDim2, boolean validity_check){
 	FileInputStream in = new FileInputStream(imgSource);
 	ByteArrayOutputStream bos = new ByteArrayOutputStream();
@@ -125,49 +125,26 @@ imgReadByte(imgSource, int patDim1, int patDim2, boolean validity_check){
   		bos.write(buffer, 0, i);
 	}
 	in.close();
-	byte[] imageDataTemp = bos.toByteArray();
+	byte[] imageData = bos.toByteArray();
 	bos.close();
 
 	if (validity_check){
-		print("Original Read In Length: " + imageDataTemp.length);
+		print("Original Read In Length: " + imageData.length);
 	}
 	
 	// Remove meta Data by only keeping the dimensional bytes
-	patOffset = imageDataTemp.length - (patDim1 * patDim2);
+	patOffset = imageData.length - (patDim1 * patDim2);
 	if (validity_check){
 		print("Index Offset for Meta Data: " + patOffset);
 	}
 
-	imageDataTemp = Arrays.copyOfRange(imageDataTemp, patOffset, imageDataTemp.length);
+	imageData = Arrays.copyOfRange(imageData, patOffset, imageData.length);
 	
 	if (validity_check){
-		print("Meta Data Stripped Length: " + imageDataTemp.length);
+		print("Meta Data Stripped Length: " + imageData.length);
 	}
 
-	// Reshape read in data from a byte[] to a byte[][]
-	imageData = reshape(imageDataTemp, patDim1, patDim2);
-	if(validity_check){
-		print("Reshaped Dim2: " + imageData[0].length);
-		print("\n");
-	}
 	return imageData;
-}
-
-
-// Reshape a 1D byte array to a 2D byte array
-byte[][] reshape(A1D, int m, int n){
-	int origM = A1D.length;
-	if(origM != m*n){
-		throw new Exception("New matrix must be of same area as matix A");
-	}
-	byte[][] B = new byte[m][n];
-	int index = 0;
-	for(int i = 0;i<n;i++){
-		for(int j = 0;j<m;j++){
-			B[j][i] = A1D[index++];
-		}
-	}
-	return B;
 }
 
 // Load all the Patterns Found into a Single Array
@@ -175,7 +152,8 @@ loadAllPatterns(String bfPattern, ArrayList subPatterns, ArrayList dlp_patterns,
 	File bfPatternFile = new File(bfPattern);
 
 	dlp_patterns.add(imgReadByte(bfPatternFile, patDim1, patDim2, validity_check));
-	for (p : subPatterns ){
+	
+	for (p : subPatterns){
 		dlp_patterns.add(imgReadByte(p, patDim1, patDim2, validity_check));
 	}
 
@@ -185,8 +163,6 @@ loadAllPatterns(String bfPattern, ArrayList subPatterns, ArrayList dlp_patterns,
 
 	return dlp_patterns;
 }
-
-
 
 // Initialize the DLP Patterns
 dlpPatternInitialization(String dlpPatternPathOrig, ArrayList dlp_patterns, int patDim1, int patDim2, boolean validity_check){
@@ -220,20 +196,8 @@ dlpPatternInitialization(String dlpPatternPathOrig, ArrayList dlp_patterns, int 
 	return dlp_patterns;
 }
 
-
-
-
-
-
-
-
-
-
-
-
-
 // Changes the displayed pattern on the DLP to the input pattern
-switchPattern(String slmLabel, pattern, boolean validity_check){
+switchPattern(String slmLabel, byte[] pattern, boolean validity_check){
 	//set shutter open
 	mmc.setShutterOpen(true);
 
@@ -241,15 +205,14 @@ switchPattern(String slmLabel, pattern, boolean validity_check){
 		print(slmLabel);
 		print(pattern.length);
 	}
-	
+
+	print("Displaying pattern...");
 	mmc.setSLMImage(slmLabel, pattern);
 	mmc.displaySLMImage(slmLabel);
 	//make sure that dlp is on
 	mmc.sleep(50); 
 	return true; 
 }
-
-
 
 // Captures an Image
 snapImg(int currCut, int currX, int currY, int currDep, int currPtrn, String slmLabel, pattern, double exposure, String acquName, boolean bfFlag, boolean validity_check){
@@ -317,6 +280,15 @@ imagingTrigger(){
 	activateMill();
 	waitForImagingReady();
 	shutterOff();
+}
+
+//wait for signal from mill to signal the beginning of a cycle (M140)
+waitForMillingStart(){
+	while(Double.valueOf(mmc.getProperty("Arduino-Input", "AnalogInput5")) > 500){
+			print("ACTIVATING MILL");
+			mmc.sleep(50);
+			//gui.message(mmc.getProperty("Arduino-Input", "AnalogInput3"));
+		}
 }
 
 // Starts the milling Cycle
@@ -409,14 +381,15 @@ for(int i = 0; i < cuts; i++){
 
 
 	// after images taken, trigger the milling cycle
-//	millingTrigger();
+	millingTrigger();
 
 	// wait for the milling to finish. Check on the status every 500ms
-//	while (Double.valueOf(
-//			mmc.getProperty("Arduino-Input", "AnalogInput5")
-//		) < 500) {
-//		mmc.sleep(500);
-//	}
+	while (Double.valueOf(
+			mmc.getProperty("Arduino-Input", "AnalogInput5")
+		) < 500) {
+		mmc.sleep(500);
+	}
+
 	// When finished,
 	print("Milling Done");
 	mmc.sleep(2000);
