@@ -236,6 +236,12 @@ snapImg(int currCut, int currX, int currY, int currDep, int currPtrn, String slm
 		mmc.waitForSystem();
 }
 
+// Starts the milling Cycle
+millingTrigger(){
+	activateMill();
+	waitForMillingStart();
+	shutterOff();
+}
 
 
 
@@ -244,8 +250,6 @@ snapImg(int currCut, int currX, int currY, int currDep, int currPtrn, String slm
 
 
 
-
-// Replace the next three methods with milling control in 2.0 ------------------------------------------------
 
 // Tells the Mill to do the Next Sequence in G-Code
 activateMill(){
@@ -255,48 +259,25 @@ activateMill(){
 }
 
 
+
+
+
 // Closes the Shutter and Stops signalling from Arduino
 shutterOff(){
 	//once milling cycle has started, shutter off
 	mmc.setShutterOpen(false);
 	mmc.setState("Arduino-Switch", 0);	//all pins LOW
 }
-// Replace the above three methods with milling control in 2.0  -----------------------------------------------
-
-
-// Waits for the mill to go to an imaging position
-waitForImagingReady(){
-	mmc.sleep(500);
-	while (Double.valueOf(
-		mmc.getProperty("Arduino-Input", "AnalogInput3")
-		) > 500){
-			print("Waiting for imaging position");
-			mmc.sleep(10);
-		}
-}
-
-// Go to Next imaging position based on tilingDim
-imagingTrigger(){
-	activateMill();
-	waitForImagingReady();
-	shutterOff();
-}
 
 //wait for signal from mill to signal the beginning of a cycle (M140)
 waitForMillingStart(){
+	print("ACTIVATING MILL");
 	while(Double.valueOf(mmc.getProperty("Arduino-Input", "AnalogInput5")) > 500){
-			print("ACTIVATING MILL");
-			mmc.sleep(50);
-			//gui.message(mmc.getProperty("Arduino-Input", "AnalogInput3"));
-		}
+		mmc.sleep(50);
+	}
+	print("MILL ACTIVATED");
 }
 
-// Starts the milling Cycle
-millingTrigger(){
-	activateMill();
-	waitForMillingStart();
-	shutterOff();
-}
 
 
 
@@ -356,7 +337,7 @@ gui.openAcquisition(acquName, rootDir, nrFrames, nrChannels, nrSlices, nrPositio
 
 
 // For each cut
-for(int i = 0; i < cuts; i++){
+for(int i = 0; i <= cuts; i++){
 	print("slice: " + i);
 	// initiate arduino pin after machine cycle. 0 for LOW at all pins, 1 for HIGH at pin 8
 	mmc.setState("Arduino-Switch", 0);
@@ -368,7 +349,6 @@ for(int i = 0; i < cuts; i++){
 			int counter = 0;
 			for (int x = 0; x < tilingDim; x++){
 				for (pattern : dlp_patterns){
-//					imagingTrigger();
 					snapImg(i, x, y, j, counter, slmLabel, pattern, exposure, acquName, bfFlag, validity_check);
 					counter = counter + 1;
 					if (bfFlag){
@@ -379,25 +359,20 @@ for(int i = 0; i < cuts; i++){
 		}
 	}
 
+	if(i != cuts){
+		// after images taken, trigger the milling cycle
+		millingTrigger();
 
-	// after images taken, trigger the milling cycle
-	millingTrigger();
+		// wait for the milling to finish. Check on the status every 500ms
+		while (Double.valueOf(mmc.getProperty("Arduino-Input", "AnalogInput5")) < 500) {
+			mmc.sleep(500);
+		}
 
-	// wait for the milling to finish. Check on the status every 500ms
-	while (Double.valueOf(
-			mmc.getProperty("Arduino-Input", "AnalogInput5")
-		) < 500) {
-		mmc.sleep(500);
+		// When finished,
+		print("Milling Done");
 	}
-
-	// When finished,
-	print("Milling Done");
 	mmc.sleep(2000);
 }
-
-
-
-
 
 
 // After all cuts done, close aquisition
