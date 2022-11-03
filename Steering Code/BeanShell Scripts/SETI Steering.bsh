@@ -1,7 +1,12 @@
+// SETI 1.5 Steering Script 
+// Modified from Yiqun Ma's Tiling-all-in-one-folder.bsh
+// By Niklas Gahm
+// 2021/10/13
 
-
-
-
+// Notes for Upgrading to SETI 2.0
+// - at various points there's specific comments about things that should be updated for 2.0 marked with ------------------ at the end
+// - any reference to arduino needs to be removed
+// - wait times may be unnecessary since uManager theoretically knows when some step is completed
 
 // Imports
 import java.io.ByteArrayOutputStream;
@@ -36,11 +41,9 @@ inputs(){
 	
 	// NOTE! All File paths must use / or \\ instead of \ on Windows
 	
-	String rootDir = "C:/Users/admin2/Box Sync/SETI/";
-	//rootDir = "C:/Users/admin2/Desktop/Acquisitions"; //address of mother folder
+	String rootDir = "C:/Users/admin2/Box Sync/SETI/"; //address of mother folder
 	
-//	String dlpPatternPath = "C:/Users/admin2/Documents/GitHub/SETI/Steering Code/Patterns/1920x1080/3 Sub Image Perfect Bar 21 Pixels 0 Aperture 0deg Rotation";	// Folder Containg Patterns for DLP
-	String dlpPatternPath = "C:/Users/User/Documents/GitHub/SETI/Steering Code/Patterns/1920x1080/3 Sub Image Perfect Bar 21 Pixels 0 Aperture 0deg Rotation";
+	String dlpPatternPath = "C:/Users/admin2/Documents/GitHub/SETI/Steering Code/Patterns/1920x1080/3 Sub Image Perfect Bar 21 Pixels 0 Aperture 0deg Rotation";	// Folder Containg Patterns for DLP
 
 	// Dimensions of Pattern Image File
 	int patDim1 = 1920;
@@ -78,7 +81,7 @@ imgFileSearch( String fileType, File folder, ArrayList result ){
 
 // Find the BrightField Reference File
 bfImgFileSearch( String fileType, String folder, boolean validity_check ){
-
+	
 	bfpath = false;
 	if (validity_check){
 		print("System File Seperator: " + File.separator);
@@ -113,10 +116,7 @@ bfImgFileSearch( String fileType, String folder, boolean validity_check ){
 }
 
 
-
-
-
-//Read Image as Byte[][]
+//Read Image as byte[]
 imgReadByte(imgSource, int patDim1, int patDim2, boolean validity_check){
 	FileInputStream in = new FileInputStream(imgSource);
 	ByteArrayOutputStream bos = new ByteArrayOutputStream();
@@ -125,66 +125,35 @@ imgReadByte(imgSource, int patDim1, int patDim2, boolean validity_check){
   		bos.write(buffer, 0, i);
 	}
 	in.close();
-	byte[] imageDataTemp = bos.toByteArray();
+	byte[] imageData = bos.toByteArray();
 	bos.close();
 
 	if (validity_check){
-		print("Original Read In Length: " + imageDataTemp.length);
+		print("Original Read In Length: " + imageData.length);
 	}
 	
 	// Remove meta Data by only keeping the dimensional bytes
-	patOffset = imageDataTemp.length - (patDim1 * patDim2);
+	patOffset = imageData.length - (patDim1 * patDim2);
 	if (validity_check){
 		print("Index Offset for Meta Data: " + patOffset);
 	}
 
-	imageDataTemp = Arrays.copyOfRange(imageDataTemp, patOffset, imageDataTemp.length);
+	imageData = Arrays.copyOfRange(imageData, patOffset, imageData.length);
 	
 	if (validity_check){
-		print("Meta Data Stripped Length: " + imageDataTemp.length);
+		print("Meta Data Stripped Length: " + imageData.length);
 	}
 
-	// Reshape read in data from a byte[] to a byte[][]
-	imageData = reshape(imageDataTemp, patDim1, patDim2);
-	if(validity_check){
-		print("Reshaped Dim2: " + imageData[0].length);
-		print("\n");
-	}
 	return imageData;
 }
-
-
-// Reshape a 1D byte array to a 2D byte array
-byte[][] reshape(A1D, int m, int n){
-	int origM = A1D.length;
-	if(origM != m*n){
-		throw new Exception("New matrix must be of same area as matix A");
-	}
-	byte[][] B = new byte[m][n];
-	int index = 0;
-	for(int i = 0;i<n;i++){
-		for(int j = 0;j<m;j++){
-			B[j][i] = A1D[index++];
-		}
-	}
-	return B;
-}
-
-
-
-
-
-
-
-
-
 
 // Load all the Patterns Found into a Single Array
 loadAllPatterns(String bfPattern, ArrayList subPatterns, ArrayList dlp_patterns, int patDim1, int patDim2, boolean validity_check) {
 	File bfPatternFile = new File(bfPattern);
 
 	dlp_patterns.add(imgReadByte(bfPatternFile, patDim1, patDim2, validity_check));
-	for (p : subPatterns ){
+	
+	for (p : subPatterns){
 		dlp_patterns.add(imgReadByte(p, patDim1, patDim2, validity_check));
 	}
 
@@ -227,15 +196,75 @@ dlpPatternInitialization(String dlpPatternPathOrig, ArrayList dlp_patterns, int 
 	return dlp_patterns;
 }
 
+// Changes the displayed pattern on the DLP to the input pattern
+switchPattern(String slmLabel, byte[] pattern, boolean validity_check){
+	//set shutter open
+	mmc.setShutterOpen(true);
 
+	if(validity_check){
+		print(slmLabel);
+		print(pattern.length);
+	}
 
+	print("Displaying pattern...");
+	mmc.setSLMImage(slmLabel, pattern);
+	mmc.displaySLMImage(slmLabel);
+	//make sure that dlp is on
+	mmc.sleep(50); 
+	return true; 
+}
 
+// Captures an Image
+snapImg(int currCut, int currX, int currY, int currDep, int currPtrn, String slmLabel, pattern, double exposure, String acquName, boolean bfFlag, boolean validity_check){
+		mmc.setExposure(exposure/2);
+		switchPattern(slmLabel, pattern, validity_check);
+		//calculate index for current image
+		ind = (tilingDim * tilingDim * currCut * 4) + (currY * tilingDim) + currX + currPtrn;
+		if(validity_check){
+			print(ind);
+		}
+		//snap and save an image
+		gui.snapAndAddImage(acquName, ind, 0, 0, currDep);
+		if(bfFlag){
+			print("BF: Depth " + currDep + " Image " + (currCut+1) + " snapped");
+		}else{
+			print("Slice: " + (currCut) + " Y: " + (currY) + " X: " + (currX) + " image: " + (currPtrn) + " snapped");
+		}
+		
+		//set shutter closed
+		mmc.setShutterOpen(false);
+		mmc.waitForSystem();
+}
 
+// Starts the milling Cycle
+millingTrigger(){
+	activateMill();
+	waitForMillingStart();
+	shutterOff();
+}
 
+// Tells the Mill to do the Next Sequence in G-Code
+activateMill(){
+	mmc.setState("Arduino-Switch", 32);  //pin 13 HIGH, triggers milling cycle (pin 15 on mill)
+	mmc.setShutterOpen(true);
+	return true;
+}
 
+// Closes the Shutter and Stops signalling from Arduino
+shutterOff(){
+	//once milling cycle has started, shutter off
+	mmc.setShutterOpen(false);
+	mmc.setState("Arduino-Switch", 0);	//all pins LOW
+}
 
-
-
+//wait for signal from mill to signal the beginning of a cycle (M140)
+waitForMillingStart(){
+	print("ACTIVATING MILL");
+	while(Double.valueOf(mmc.getProperty("Arduino-Input", "AnalogInput5")) > 500){
+		mmc.sleep(50);
+	}
+	print("MILL ACTIVATED");
+}
 
 
 
@@ -247,6 +276,11 @@ dlpPatternInitialization(String dlpPatternPathOrig, ArrayList dlp_patterns, int 
 
 
 // Main
+gui.closeAllAcquisitions();
+mmc.setShutterOpen(false);
+mmc.setState("Arduino-Switch", 0);	//all pins LOW
+gui.clearMessageWindow();
+
 // load in inputs
 inputsObject = inputs();
 depthOfSectioning = inputsObject.depthOfSectioning;
@@ -283,6 +317,55 @@ if(validity_check){
 ArrayList dlp_patterns = new ArrayList();
 dlp_patterns = dlpPatternInitialization(dlpPatternPath, dlp_patterns, patDim1, patDim2, validity_check);
 
+// Get DLP Device Label
+slmLabel = mmc.getSLMDevice();
+
+// Process begins
+gui.openAcquisition(acquName, rootDir, nrFrames, nrChannels, nrSlices, nrPositions, show, save);
+
+
+// For each cut
+for(int i = 0; i <= cuts; i++){
+	print("slice: " + i);
+	// initiate arduino pin after machine cycle. 0 for LOW at all pins, 1 for HIGH at pin 8
+	mmc.setState("Arduino-Switch", 0);
+	mmc.setShutterOpen(false); // all 
+	// For each depth and XY Position
+	for (int j = 0; j < imgDepth; j++){
+		for (int y = 0; y < tilingDim; y++){
+			bfFlag = true;
+			int counter = 0;
+			for (int x = 0; x < tilingDim; x++){
+				for (pattern : dlp_patterns){
+					snapImg(i, x, y, j, counter, slmLabel, pattern, exposure, acquName, bfFlag, validity_check);
+					counter = counter + 1;
+					if (bfFlag){
+						bfFlag = false;
+					}
+				}
+			}
+		}
+	}
+
+	if(i != cuts){
+		// after images taken, trigger the milling cycle
+		millingTrigger();
+
+		// wait for the milling to finish. Check on the status every 500ms
+		while (Double.valueOf(mmc.getProperty("Arduino-Input", "AnalogInput5")) < 500) {
+			mmc.sleep(500);
+		}
+
+		// When finished,
+		print("Milling Done");
+	}
+	mmc.sleep(2000);
+}
+
 
 // After all cuts done, close aquisition
+gui.closeAllAcquisitions();
+mmc.setShutterOpen(false);
+mmc.setState("Arduino-Switch", 0);	//all pins LOW
+
 print("ACQUISITION Done\n");
